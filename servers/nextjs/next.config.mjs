@@ -4,6 +4,7 @@ const FASTAPI_URL = process.env.NEXT_PUBLIC_FAST_API || 'http://127.0.0.1:8000';
 const isElectronBuild = process.env.BUILD_TARGET === 'electron' || process.argv.includes('--electron');
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
+
 const nextConfig = {
   reactStrictMode: false,
   distDir: ".next-build",
@@ -71,7 +72,7 @@ const nextConfig = {
       },
     ],
   },
-  
 };
+
 
 export default nextConfig;

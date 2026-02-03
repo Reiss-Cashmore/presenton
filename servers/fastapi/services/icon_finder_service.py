@@ -1,56 +1,53 @@
 import asyncio
 import json
-import chromadb
-from chromadb.config import Settings
-from chromadb.utils.embedding_functions import ONNXMiniLM_L6_V2
+import os
+from fastembed_vectorstore import FastembedEmbeddingModel, FastembedVectorstore
 
 
 class IconFinderService:
     def __init__(self):
-        self.collection_name = "icons"
-        self.client = chromadb.PersistentClient(
-            path="chroma", settings=Settings(anonymized_telemetry=False)
-        )
+        self.model = FastembedEmbeddingModel.AllMiniLML6V2
+        self.cache_directory = "fastembed_cache"
+
         print("Initializing icons collection...")
         self._initialize_icons_collection()
         print("Icons collection initialized.")
 
     def _initialize_icons_collection(self):
-        self.embedding_function = ONNXMiniLM_L6_V2()
-        self.embedding_function.DOWNLOAD_PATH = "chroma/models"
-        self.embedding_function._download_model_if_not_exists()
-        try:
-            self.collection = self.client.get_collection(
-                self.collection_name, embedding_function=self.embedding_function
+        icons_vectorstore_path = "assets/icons-vectorstore.json"
+        if os.path.exists(icons_vectorstore_path):
+            self.vectorstore = FastembedVectorstore.load(
+                self.model, icons_vectorstore_path, cache_directory=self.cache_directory
             )
-        except Exception:
-            with open("assets/icons.json", "r") as f:
+        else:
+            self.vectorstore = FastembedVectorstore(
+                self.model, cache_directory=self.cache_directory
+            )
+            icons_path = "assets/icons.json"
+            with open(icons_path, "r") as f:
                 icons = json.load(f)
 
             documents = []
-            ids = []
 
-            for i, each in enumerate(icons["icons"]):
+            for each in icons["icons"]:
                 if each["name"].split("-")[-1] == "bold":
-                    doc_text = f"{each['name']} {each['tags']}"
+                    doc_text = f"{each['name']}||{each['tags']}"
                     documents.append(doc_text)
-                    ids.append(each["name"])
 
             if documents:
-                self.collection = self.client.create_collection(
-                    name=self.collection_name,
-                    embedding_function=self.embedding_function,
-                    metadata={"hnsw:space": "cosine"},
-                )
-                self.collection.add(documents=documents, ids=ids)
+                success = self.vectorstore.embed_documents(documents)
+                if success:
+                    print(f"Successfully embedded {len(documents)} icons")
+                    self.vectorstore.save(icons_vectorstore_path)
+                else:
+                    print(f"Failed to embed {len(documents)} icons")
 
     async def search_icons(self, query: str, k: int = 1):
-        result = await asyncio.to_thread(
-            self.collection.query,
-            query_texts=[query],
-            n_results=k,
-        )
-        return [f"/static/icons/bold/{each}.svg" for each in result["ids"][0]]
+        result = await asyncio.to_thread(self.vectorstore.search, query, k)
+        return [
+            f"/static/icons/bold/{each[0].split('||')[0]}.svg"
+            for each in result
+        ]
 
 
 ICON_FINDER_SERVICE = IconFinderService()

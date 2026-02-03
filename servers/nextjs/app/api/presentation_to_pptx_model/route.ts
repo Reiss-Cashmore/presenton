@@ -30,6 +30,26 @@ interface GetAllChildElementsAttributesArgs {
 }
 
 export async function GET(request: NextRequest) {
+  // Check if running in Electron/static export mode
+  // This route requires server-side Puppeteer execution which is not available in static exports
+  // - In Electron builds (BUILD_TARGET=electron): Return stub response
+  // - In development mode: Full functionality with Puppeteer
+  // - In Docker/server deployments: Full functionality with Puppeteer
+  const isStaticMode = process.env.BUILD_TARGET === 'electron' || 
+                       process.env.IS_STATIC_EXPORT === 'true' ||
+                       process.env.NEXT_RUNTIME === 'edge';
+  
+  if (isStaticMode) {
+    return NextResponse.json(
+      { 
+        error: "This API route requires a server runtime and is not available in static export mode",
+        message: "This functionality is only available in development mode or Docker deployment with Puppeteer support"
+      },
+      { status: 501 }
+    );
+  }
+
+  // Full functionality for development/Docker
   let browser: Browser | null = null;
   let page: Page | null = null;
 
