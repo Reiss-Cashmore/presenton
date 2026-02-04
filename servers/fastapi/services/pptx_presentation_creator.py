@@ -74,6 +74,17 @@ class PptxPresentationCreator:
             for each_shape in self._ppt_model.shapes:
                 if isinstance(each_shape, PptxPictureBoxModel):
                     image_path = each_shape.picture.path
+                    
+                    # Handle file:// URLs by converting to local path
+                    if image_path.startswith("file://"):
+                        image_path = image_path.replace("file:///", "")
+                        # Check if it's a Windows path (has colon at index 1)
+                        if not (len(image_path) > 1 and image_path[1] == ':'):
+                            image_path = '/' + image_path
+                        each_shape.picture.path = image_path
+                        each_shape.picture.is_network = False
+                        continue
+                    
                     if image_path.startswith("http"):
                         if "app_data/" in image_path:
                             relative_path = image_path.split("app_data/")[1]
@@ -89,6 +100,17 @@ class PptxPresentationCreator:
             for each_shape in each_slide.shapes:
                 if isinstance(each_shape, PptxPictureBoxModel):
                     image_path = each_shape.picture.path
+                    
+                    # Handle file:// URLs by converting to local path
+                    if image_path.startswith("file://"):
+                        image_path = image_path.replace("file:///", "")
+                        # Check if it's a Windows path (has colon at index 1)
+                        if not (len(image_path) > 1 and image_path[1] == ':'):
+                            image_path = '/' + image_path
+                        each_shape.picture.path = image_path
+                        each_shape.picture.is_network = False
+                        continue
+                    
                     if image_path.startswith("http"):
                         if "app_data" in image_path:
                             relative_path = image_path.split("app_data/")[1]

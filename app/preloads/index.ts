@@ -28,4 +28,5 @@ contextBridge.exposeInMainWorld('electron', {
   hasRequiredKey: () => ipcRenderer.invoke("api:has-required-key"),
   telemetryStatus: () => ipcRenderer.invoke("api:telemetry-status"),
   getTemplates: () => ipcRenderer.invoke("api:templates"),
+  getPresentationPptxModel: (presentationId: string) => ipcRenderer.invoke("presentation-to-pptx-model", presentationId),
 });

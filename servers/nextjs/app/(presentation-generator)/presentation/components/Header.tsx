@@ -60,6 +60,16 @@ const Header = ({
   const { onUndo, onRedo, canUndo, canRedo } = usePresentationUndoRedo();
 
   const get_presentation_pptx_model = async (id: string): Promise<PptxPresentationModel> => {
+    // Use Electron IPC if available (Electron build), otherwise use HTTP API
+    if (typeof window !== 'undefined' && (window as any).electron?.getPresentationPptxModel) {
+      const result = await (window as any).electron.getPresentationPptxModel(id);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to get presentation PPTX model');
+      }
+      return result.data;
+    }
+    
+    // Fallback to HTTP API for non-Electron environments
     const response = await fetch(getApiUrl(`/api/presentation_to_pptx_model?id=${id}`));
     const pptx_model = await response.json();
     return pptx_model;

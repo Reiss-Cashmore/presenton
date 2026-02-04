@@ -27,4 +27,5 @@ export interface PreviousGeneratedImagesResponse {
     created_at: string;
     id: string;
     path: string;
+    file_url: string;
 }

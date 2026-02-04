@@ -18,8 +18,8 @@ export function setupUploadImage() {
       // Write file to disk
       await fs.writeFileSync(filePath, file);
 
-      // Return the relative path that can be used in the frontend
-      return filePath;
+      // Return the path with file:// protocol for Electron
+      return `file://${filePath}`;
     } catch (error) {
       console.error("Error saving image:", error);
       throw error;

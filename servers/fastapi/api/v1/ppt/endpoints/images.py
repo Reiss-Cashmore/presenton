@@ -30,7 +30,7 @@ async def generate_image(
     sql_session.add(image)
     await sql_session.commit()
 
-    return image.path
+    return image.file_url
 
 
 @IMAGES_ROUTER.get("/generated", response_model=List[ImageAsset])

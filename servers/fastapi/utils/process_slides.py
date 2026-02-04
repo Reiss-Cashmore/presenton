@@ -1,4 +1,5 @@
 import asyncio
+import os
 from typing import List, Tuple
 from models.image_prompt import ImagePrompt
 from models.sql.image_asset import ImageAsset
@@ -44,7 +45,7 @@ async def process_slide_and_fetch_assets(
         result = results.pop()
         if isinstance(result, ImageAsset):
             return_assets.append(result)
-            image_dict["__image_url__"] = result.path
+            image_dict["__image_url__"] = result.file_url
         else:
             image_dict["__image_url__"] = result
         set_dict_at_path(slide.content, image_path, image_dict)
@@ -55,8 +56,9 @@ async def process_slide_and_fetch_assets(
         if icon_result and len(icon_result) > 0:
             icon_dict["__icon_url__"] = icon_result[0]
         else:
-            # Fallback to placeholder if no icon found
-            icon_dict["__icon_url__"] = "/static/icons/placeholder.svg"
+            # Fallback to placeholder if no icon found - use absolute path with file:// for Electron
+            placeholder_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "static", "icons", "placeholder.svg"))
+            icon_dict["__icon_url__"] = f"file://{placeholder_path}"
         set_dict_at_path(slide.content, icon_path, icon_dict)
 
     return return_assets
@@ -157,7 +159,7 @@ async def process_old_and_new_slides_and_fetch_assets(
             fetched_image = new_images[i]
             if isinstance(fetched_image, ImageAsset):
                 new_assets.append(fetched_image)
-                image_url = fetched_image.path
+                image_url = fetched_image.file_url
             else:
                 image_url = fetched_image
             new_image_dicts[i]["__image_url__"] = image_url
@@ -187,10 +189,14 @@ def process_slide_add_placeholder_assets(slide: SlideModel):
 
     for image_path in image_paths:
         image_dict = get_dict_at_path(slide.content, image_path)
-        image_dict["__image_url__"] = "/static/images/placeholder.jpg"
+        # Use absolute path with file:// for Electron
+        placeholder_img_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "static", "images", "placeholder.jpg"))
+        image_dict["__image_url__"] = f"file://{placeholder_img_path}"
         set_dict_at_path(slide.content, image_path, image_dict)
 
     for icon_path in icon_paths:
         icon_dict = get_dict_at_path(slide.content, icon_path)
-        icon_dict["__icon_url__"] = "/static/icons/placeholder.svg"
+        # Use absolute path with file:// for Electron
+        placeholder_icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "static", "icons", "placeholder.svg"))
+        icon_dict["__icon_url__"] = f"file://{placeholder_icon_path}"
         set_dict_at_path(slide.content, icon_path, icon_dict)

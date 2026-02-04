@@ -39,10 +39,10 @@ export async function POST(request: NextRequest) {
     // Write file to disk
     fs.writeFileSync(filePath, buffer);
 
-    // Return the relative path that can be used in the frontend
+    // Return the path with file:// protocol for Electron compatibility
     return NextResponse.json({
       success: true,
-      filePath: `${uploadsDir}/${filename}`
+      filePath: `file://${filePath}`
     });
   } catch (error) {
     console.error("Error saving image:", error);
