@@ -12,10 +12,15 @@ export async function showFileDownloadedDialog(filePath: string): Promise<boolea
       message: 'What would you like to do?'
     });
 
+    // Open file/folder in background without awaiting to prevent blocking
     if (response === 0) {
-      await shell.openPath(filePath);
+      shell.openPath(filePath).catch(err => 
+        console.error('Error opening file:', err)
+      );
     } else if (response === 1) {
-      await shell.openPath(path.dirname(filePath));
+      shell.openPath(path.dirname(filePath)).catch(err => 
+        console.error('Error opening folder:', err)
+      );
     }
 
     return true;
