@@ -1532,15 +1532,235 @@ async function screenshotElement(
 function convertElementAttributesToPptxSlides(
   slidesAttributes: SlideAttributesResult[]
 ): PptxSlide[] {
-  // Convert slide attributes to PPTX model format expected by FastAPI
-  return slidesAttributes.map((slide) => ({
-    shapes: slide.elements.map((element) => ({
-      ...element,
-    })),
-    background: slide.backgroundColor ? {
-      color: slide.backgroundColor,
-      opacity: 1.0
+  return slidesAttributes.map((slideAttributes) => {
+    const shapes = slideAttributes.elements.map(element => {
+      return convertElementToPptxShape(element);
+    }).filter(Boolean);
+
+    const slide: PptxSlide = {
+      shapes: shapes,
+      note: slideAttributes.speakerNote
+    };
+
+    if (slideAttributes.backgroundColor) {
+      slide.background = {
+        color: slideAttributes.backgroundColor,
+        opacity: 1.0
+      };
+    }
+
+    return slide;
+  });
+}
+
+function convertTextAlignToPptxAlignment(textAlign?: string): number | undefined {
+  if (!textAlign) return undefined;
+
+  // PP_ALIGN enum values: LEFT=1, CENTER=2, RIGHT=3, JUSTIFY=4, DISTRIBUTE=5, THAI_DISTRIBUTE=6, JUSTIFY_LOW=7, MIXED=-2
+  switch (textAlign.toLowerCase()) {
+    case 'left':
+    case 'start':
+      return 1; // PP_ALIGN.LEFT
+    case 'center':
+      return 2; // PP_ALIGN.CENTER
+    case 'right':
+    case 'end':
+      return 3; // PP_ALIGN.RIGHT
+    case 'justify':
+      return 4; // PP_ALIGN.JUSTIFY
+    default:
+      return 1; // PP_ALIGN.LEFT
+  }
+}
+
+function convertLineHeightToRelative(lineHeight?: number, fontSize?: number): number | undefined {
+  if (!lineHeight) return undefined;
+
+  let calculatedLineHeight = 1.2;
+  if (lineHeight < 10) {
+    calculatedLineHeight = lineHeight;
+  }
+
+  if (fontSize && fontSize > 0) {
+    calculatedLineHeight = Math.round((lineHeight / fontSize) * 100) / 100;
+  }
+
+  return calculatedLineHeight - 0.3
+}
+
+function convertElementToPptxShape(element: ElementAttributes): any | null {
+  if (!element.position) {
+    return null;
+  }
+
+  if (element.tagName === 'img' || (element.className && typeof element.className === 'string' && element.className.includes('image')) || element.imageSrc) {
+    return convertToPictureBox(element);
+  }
+
+  if (element.innerText && element.innerText.trim().length > 0) {
+    // Use AutoShape model if there's background color and border radius
+    if (element.background?.color && element.borderRadius && element.borderRadius.some(radius => radius > 0)) {
+      return convertToAutoShapeBox(element);
+    }
+    return convertToTextBox(element);
+  }
+
+  if (element.tagName === 'hr') {
+    return convertToConnector(element);
+  }
+
+  return convertToAutoShapeBox(element);
+}
+
+function convertToTextBox(element: ElementAttributes): any {
+  const position = {
+    left: Math.round(element.position?.left ?? 0),
+    top: Math.round(element.position?.top ?? 0),
+    width: Math.round(element.position?.width ?? 0),
+    height: Math.round(element.position?.height ?? 0)
+  };
+
+  const fill = element.background?.color ? {
+    color: element.background.color,
+    opacity: element.background.opacity ?? 1.0
+  } : undefined;
+
+  const font = element.font ? {
+    name: element.font.name ?? "Inter",
+    size: Math.round(element.font.size ?? 16),
+    font_weight: element.font.weight ?? 400,
+    italic: element.font.italic ?? false,
+    color: element.font.color ?? "000000"
+  } : undefined;
+
+  const paragraph = {
+    spacing: undefined,
+    alignment: convertTextAlignToPptxAlignment(element.textAlign),
+    font,
+    line_height: convertLineHeightToRelative(element.lineHeight, element.font?.size),
+    text: element.innerText
+  };
+
+  return {
+    shape_type: "textbox",
+    margin: undefined,
+    fill,
+    position,
+    text_wrap: element.textWrap ?? true,
+    paragraphs: [paragraph]
+  };
+}
+
+function convertToAutoShapeBox(element: ElementAttributes): any {
+  const position = {
+    left: Math.round(element.position?.left ?? 0),
+    top: Math.round(element.position?.top ?? 0),
+    width: Math.round(element.position?.width ?? 0),
+    height: Math.round(element.position?.height ?? 0)
+  };
+
+  const fill = element.background?.color ? {
+    color: element.background.color,
+    opacity: element.background.opacity ?? 1.0
+  } : undefined;
+
+  const stroke = element.border?.color ? {
+    color: element.border.color,
+    thickness: element.border.width ?? 1,
+    opacity: element.border.opacity ?? 1.0
+  } : undefined;
+
+  const shadow = element.shadow?.color ? {
+    radius: Math.round(element.shadow.radius ?? 4),
+    offset: Math.round(element.shadow.offset ? Math.sqrt(element.shadow.offset[0] ** 2 + element.shadow.offset[1] ** 2) : 0),
+    color: element.shadow.color,
+    opacity: element.shadow.opacity ?? 0.5,
+    angle: Math.round(element.shadow.angle ?? 0)
+  } : undefined;
+
+  const paragraphs = element.innerText ? [{
+    spacing: undefined,
+    alignment: convertTextAlignToPptxAlignment(element.textAlign),
+    font: element.font ? {
+      name: element.font.name ?? "Inter",
+      size: Math.round(element.font.size ?? 16),
+      font_weight: element.font.weight ?? 400,
+      italic: element.font.italic ?? false,
+      color: element.font.color ?? "000000"
     } : undefined,
-    note: slide.speakerNote,
-  }));
+    line_height: convertLineHeightToRelative(element.lineHeight, element.font?.size),
+    text: element.innerText
+  }] : undefined;
+
+  // Use integer enum values: RECTANGLE = 1, ROUNDED_RECTANGLE = 5
+  const shapeType = element.borderRadius ? 5 : 1;
+
+  let borderRadius = undefined;
+  for (const eachCornerRadius of element.borderRadius ?? []) {
+    if (eachCornerRadius > 0) {
+      borderRadius = Math.max(borderRadius ?? 0, eachCornerRadius);
+    }
+  }
+
+  return {
+    shape_type: "autoshape",
+    type: shapeType,
+    margin: undefined,
+    fill,
+    stroke,
+    shadow,
+    position,
+    text_wrap: element.textWrap ?? true,
+    border_radius: borderRadius || undefined,
+    paragraphs
+  };
+}
+
+function convertToPictureBox(element: ElementAttributes): any {
+  const position = {
+    left: Math.round(element.position?.left ?? 0),
+    top: Math.round(element.position?.top ?? 0),
+    width: Math.round(element.position?.width ?? 0),
+    height: Math.round(element.position?.height ?? 0)
+  };
+
+  const objectFit = {
+    fit: element.objectFit || 'contain'
+  };
+
+  const picture = {
+    is_network: element.imageSrc ? element.imageSrc.startsWith('http') : false,
+    path: element.imageSrc || ''
+  };
+
+  return {
+    shape_type: "picture",
+    position,
+    margin: undefined,
+    clip: element.clip ?? true,
+    invert: element.filters?.invert === 1,
+    opacity: element.opacity,
+    border_radius: element.borderRadius ? element.borderRadius.map(r => Math.round(r)) : undefined,
+    shape: element.shape || 'rectangle',
+    object_fit: objectFit,
+    picture
+  };
+}
+
+function convertToConnector(element: ElementAttributes): any {
+  const position = {
+    left: Math.round(element.position?.left ?? 0),
+    top: Math.round(element.position?.top ?? 0),
+    width: Math.round(element.position?.width ?? 0),
+    height: Math.round(element.position?.height ?? 0)
+  };
+
+  return {
+    shape_type: "connector",
+    type: 1, // STRAIGHT = 1
+    position,
+    thickness: element.border?.width ?? 0.5,
+    color: element.border?.color || element.background?.color || '000000',
+    opacity: element.border?.opacity ?? 1.0
+  };
 }
