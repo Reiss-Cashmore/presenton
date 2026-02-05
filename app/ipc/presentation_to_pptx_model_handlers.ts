@@ -105,36 +105,59 @@ export function setupPresentationToPptxModelHandlers() {
   ipcMain.handle(
     "presentation-to-pptx-model",
     async (event, presentationId: string) => {
+      console.log('[PPTX Export] ========================================');
+      console.log('[PPTX Export] Starting PPTX export for presentation:', presentationId);
+      console.log('[PPTX Export] ========================================');
       let window: BrowserWindow | null = null;
 
       try {
+        console.log('[PPTX Export] Step 1: Getting screenshots directory...');
         const screenshotsDir = getScreenshotsDir();
+        console.log('[PPTX Export] Screenshots directory:', screenshotsDir);
+        
+        console.log('[PPTX Export] Step 2: Creating browser window...');
         window = await createBrowserWindow(presentationId);
 
+        console.log('[PPTX Export] Step 3: Getting slides and speaker notes...');
         const { slides, speakerNotes } = await getSlidesAndSpeakerNotes(window);
+        console.log('[PPTX Export] Found', slides.length, 'slides and', speakerNotes.length, 'speaker notes');
+        
+        console.log('[PPTX Export] Step 4: Getting slides attributes...');
         const slides_attributes = await getSlidesAttributes(
           window,
           slides,
           screenshotsDir
         );
+        console.log('[PPTX Export] Got attributes for', slides_attributes.length, 'slides');
+        
+        console.log('[PPTX Export] Step 5: Post-processing slides attributes...');
         await postProcessSlidesAttributes(
           window,
           slides_attributes,
           screenshotsDir,
           speakerNotes
         );
+        
+        console.log('[PPTX Export] Step 6: Converting to PPTX model...');
         const slides_pptx_models =
           convertElementAttributesToPptxSlides(slides_attributes);
         const presentation_pptx_model: PptxPresentationModel = {
           slides: slides_pptx_models,
         };
 
+        console.log('[PPTX Export] Step 7: Closing browser window...');
         window.close();
 
+        console.log('[PPTX Export] ========================================');
+        console.log('[PPTX Export] Export completed successfully!');
+        console.log('[PPTX Export] ========================================');
         return { success: true, data: presentation_pptx_model };
       } catch (error: any) {
-        console.error(error);
+        console.error('[PPTX Export] ========================================');
+        console.error('[PPTX Export] Export failed with error:', error);
+        console.error('[PPTX Export] ========================================');
         if (window) {
+          console.log('[PPTX Export] Closing browser window due to error...');
           window.close();
         }
         return {
@@ -150,47 +173,244 @@ export function setupPresentationToPptxModelHandlers() {
 async function createBrowserWindow(
   presentationId: string
 ): Promise<BrowserWindow> {
+  console.log('[PPTX Export] Creating browser window for presentation:', presentationId);
+  
+  // Use the Next.js URL from environment variable
+  const nextjsUrl = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000';
+  const fastApiUrl = process.env.NEXT_PUBLIC_FAST_API || 'http://127.0.0.1:8000';
+  
+  console.log('[PPTX Export] Next.js URL:', nextjsUrl);
+  console.log('[PPTX Export] FastAPI URL:', fastApiUrl);
+  
+  // Get the preload script path
+  const preloadPath = path.join(__dirname, '../preloads/pptx-export.js');
+  console.log('[PPTX Export] Preload script path:', preloadPath);
+  console.log('[PPTX Export] Preload script exists:', fs.existsSync(preloadPath));
+  
   const window = new BrowserWindow({
     width: 1280,
     height: 720,
     show: false,
     webPreferences: {
       nodeIntegration: false,
-      contextIsolation: true,
+      contextIsolation: false, // Disabled so preload can set window.env
       webSecurity: false,
+      preload: preloadPath,
     },
   });
-
-  // Use the Next.js URL from environment variable
-  const nextjsUrl = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000';
+  
   const url = `${nextjsUrl}/pdf-maker?id=${presentationId}`;
+  console.log('[PPTX Export] Loading URL:', url);
   await window.loadURL(url);
+  console.log('[PPTX Export] URL loaded, waiting for page to finish loading...');
+
+  // Wait for page to finish loading first
+  await new Promise<void>((resolve) => {
+    const checkLoadState = () => {
+      if (window.webContents.isLoading()) {
+        setTimeout(checkLoadState, 100);
+      } else {
+        console.log('[PPTX Export] Page finished loading (isLoading = false)');
+        resolve();
+      }
+    };
+    checkLoadState();
+  });
+
+  // Check readyState
+  const readyState = await window.webContents.executeJavaScript('document.readyState');
+  console.log('[PPTX Export] Document readyState:', readyState);
+
+  // Check initial page state and verify environment variables
+  const initialPageState = await window.webContents.executeJavaScript(`
+    ({
+      title: document.title,
+      url: window.location.href,
+      hasNextScripts: document.querySelectorAll('script[src*="next"], script[src*="_next"]').length,
+      bodyChildren: document.body ? document.body.children.length : 0,
+      hasWindowEnv: !!window.env,
+      fastApiUrl: window.env ? window.env.NEXT_PUBLIC_FAST_API : 'not set'
+    })
+  `);
+  console.log('[PPTX Export] Initial page state:', initialPageState);
+
+  // Wait for Next.js to finish loading (check for __NEXT_DATA__ or hydration)
+  console.log('[PPTX Export] Waiting for Next.js to finish loading...');
+  try {
+    await window.webContents.executeJavaScript(`
+      new Promise((resolve) => {
+        let attempts = 0;
+        const maxAttempts = 50; // 10 seconds
+        
+        const checkNextJS = () => {
+          attempts++;
+          const hasNextData = !!window.__NEXT_DATA__;
+          const hasHydrated = document.body && document.body.getAttribute('data-reactroot') !== null;
+          const scriptsLoaded = document.querySelectorAll('script[src*="_next"]').length > 0;
+          
+          if (hasNextData || hasHydrated || scriptsLoaded || attempts >= maxAttempts) {
+            console.log('[PPTX Export] Next.js check complete: hasNextData=' + hasNextData + ', hasHydrated=' + hasHydrated + ', scriptsLoaded=' + scriptsLoaded + ', attempts=' + attempts);
+            resolve();
+            return;
+          }
+          
+          setTimeout(checkNextJS, 200);
+        };
+        
+        checkNextJS();
+      });
+    `);
+  } catch (e) {
+    console.warn('[PPTX Export] Error checking Next.js state:', e);
+  }
 
   // Wait for page to be fully loaded and slides wrapper to be ready
-  await window.webContents.executeJavaScript(`
-    new Promise((resolve) => {
-      if (document.getElementById('presentation-slides-wrapper')) {
-        resolve();
-      } else {
-        const observer = new MutationObserver((mutations, obs) => {
-          if (document.getElementById('presentation-slides-wrapper')) {
-            obs.disconnect();
-            resolve();
+  console.log('[PPTX Export] Starting to wait for presentation-slides-wrapper...');
+  try {
+    const waitResult = await window.webContents.executeJavaScript(`
+      new Promise((resolve, reject) => {
+        let attempts = 0;
+        const maxAttempts = 150; // 30 seconds with 200ms intervals
+        
+        const checkForElement = () => {
+          attempts++;
+          const wrapper = document.getElementById('presentation-slides-wrapper');
+          const hasBody = !!document.body;
+          const bodyChildren = document.body ? document.body.children.length : 0;
+          const currentUrl = window.location.href;
+          const pageTitle = document.title;
+          
+          if (attempts % 10 === 0 || attempts <= 5) {
+            console.log('[PPTX Export] Attempt ' + attempts + ': wrapper=' + (wrapper ? 'found' : 'not found') + ', body=' + hasBody + ', bodyChildren=' + bodyChildren + ', url=' + currentUrl + ', title=' + pageTitle);
+            
+            // On first few attempts, log what's actually in the body
+            if (attempts <= 3 && document.body) {
+              const firstChild = document.body.firstElementChild;
+              if (firstChild) {
+                console.log('[PPTX Export] First body child: tag=' + firstChild.tagName + ', id=' + (firstChild.id || 'no-id') + ', class=' + (firstChild.className || 'no-class'));
+              }
+            }
+          }
+          
+          if (wrapper) {
+            // Check if it actually has slides inside
+            const slides = wrapper.querySelectorAll(':scope > div > div');
+            if (slides.length > 0) {
+              console.log('[PPTX Export] Found presentation-slides-wrapper with ' + slides.length + ' slides after ' + attempts + ' attempts');
+              resolve({ found: true, slidesCount: slides.length, attempts: attempts });
+              return;
+            } else {
+              if (attempts % 10 === 0) {
+                console.log('[PPTX Export] Wrapper found but has 0 slides');
+              }
+            }
+          }
+          
+          if (attempts >= maxAttempts) {
+            console.error('[PPTX Export] Timeout after ' + attempts + ' attempts. Wrapper exists:', !!document.getElementById('presentation-slides-wrapper'));
+            // Get detailed DOM info for debugging
+            const domInfo = {
+              readyState: document.readyState,
+              title: document.title,
+              hasBody: !!document.body,
+              bodyChildren: document.body ? document.body.children.length : 0,
+              bodyHTML: document.body ? document.body.innerHTML.substring(0, 500) : 'no body',
+              allIds: Array.from(document.querySelectorAll('[id]')).map(el => el.id),
+              allClasses: Array.from(document.querySelectorAll('[class]')).slice(0, 20).map(el => el.className),
+              rootElement: document.documentElement ? document.documentElement.tagName : 'none',
+              url: window.location.href
+            };
+            console.error('[PPTX Export] DOM state at timeout:', JSON.stringify(domInfo, null, 2));
+            reject(new Error('Timeout waiting for presentation-slides-wrapper with slides'));
+            return;
+          }
+          
+          setTimeout(checkForElement, 200);
+        };
+        
+        // Also use MutationObserver for faster detection
+        const observer = new MutationObserver(() => {
+          const wrapper = document.getElementById('presentation-slides-wrapper');
+          if (wrapper) {
+            const slides = wrapper.querySelectorAll(':scope > div > div');
+            if (slides.length > 0) {
+              console.log('[PPTX Export] MutationObserver detected slides!');
+              observer.disconnect();
+              resolve({ found: true, slidesCount: slides.length, attempts: attempts, viaObserver: true });
+            }
           }
         });
-        observer.observe(document.body, { childList: true, subtree: true });
         
-        // Timeout after 10 seconds
-        setTimeout(() => {
-          observer.disconnect();
-          resolve();
-        }, 10000);
-      }
-    });
-  `);
+        if (document.body) {
+          observer.observe(document.body, { childList: true, subtree: true });
+          console.log('[PPTX Export] MutationObserver started');
+        } else {
+          console.warn('[PPTX Export] document.body is null, cannot start MutationObserver');
+        }
+        
+        // Start checking
+        console.log('[PPTX Export] Starting polling for presentation-slides-wrapper...');
+        checkForElement();
+      });
+    `);
+    console.log('[PPTX Export] Wait completed:', waitResult);
+  } catch (error) {
+    console.error('[PPTX Export] Error waiting for slides wrapper:', error);
+    // Check what's actually in the DOM
+    try {
+      const domInfo = await window.webContents.executeJavaScript(`
+        (function() {
+          const body = document.body;
+          const wrapper = document.getElementById('presentation-slides-wrapper');
+          
+          // Get all elements with common class names that might contain slides
+          const possibleContainers = Array.from(document.querySelectorAll('[class*="slide"], [class*="presentation"], [class*="wrapper"]')).slice(0, 10);
+          
+          return {
+            readyState: document.readyState,
+            title: document.title,
+            url: window.location.href,
+            hasBody: !!body,
+            bodyChildren: body ? body.children.length : 0,
+            bodyFirstChild: body && body.firstElementChild ? body.firstElementChild.tagName + (body.firstElementChild.id ? '#' + body.firstElementChild.id : '') + (body.firstElementChild.className ? '.' + body.firstElementChild.className.split(' ')[0] : '') : 'none',
+            hasWrapper: !!wrapper,
+            wrapperChildren: wrapper ? wrapper.children.length : 0,
+            allIds: Array.from(document.querySelectorAll('[id]')).map(el => el.id).slice(0, 30),
+            possibleContainers: possibleContainers.map(el => ({
+              tag: el.tagName,
+              id: el.id || 'no-id',
+              className: el.className || 'no-class',
+              children: el.children.length
+            })),
+            bodyHTMLPreview: body ? body.innerHTML.substring(0, 1000) : 'no body'
+          };
+        })()
+      `);
+      console.log('[PPTX Export] Detailed DOM state when error occurred:');
+      console.log(JSON.stringify(domInfo, null, 2));
+      
+      // Also check if there are any console errors
+      const consoleMessages = await window.webContents.executeJavaScript(`
+        (function() {
+          // This won't capture past errors, but we can check for error indicators
+          return {
+            hasErrorElements: document.querySelectorAll('[class*="error"], [class*="Error"]').length,
+            hasLoadingElements: document.querySelectorAll('[class*="loading"], [class*="Loading"], [class*="spinner"]').length,
+            hasNextScripts: document.querySelectorAll('script[src*="next"], script[src*="_next"]').length
+          };
+        })()
+      `);
+      console.log('[PPTX Export] Page indicators:', consoleMessages);
+    } catch (e) {
+      console.error('[PPTX Export] Could not get DOM info:', e);
+    }
+    // Continue anyway, we'll check in the next step
+  }
 
-  // Small additional wait for images to load
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  // Additional wait for images and content to load
+  console.log('[PPTX Export] Additional 2 second wait for content to load...');
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+  console.log('[PPTX Export] Browser window ready');
 
   return window;
 }
@@ -209,34 +429,112 @@ function getScreenshotsDir(): string {
 
 async function getSlidesAndSpeakerNotes(window: BrowserWindow) {
   try {
-    const result = await window.webContents.executeJavaScript(`
-      (function() {
-        const slidesWrapper = document.getElementById('presentation-slides-wrapper');
-        if (!slidesWrapper) {
-          throw new Error('Presentation slides not found');
+    console.log('[PPTX Export] Getting slides and speaker notes...');
+    // Wait for webContents to be ready
+    if (!window.webContents) {
+      throw new ApiError('Window webContents not available');
+    }
+    
+    // Retry logic with exponential backoff
+    let lastError: Error | null = null;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      try {
+        // Wait a bit before each attempt (except first)
+        if (attempt > 0) {
+          const waitTime = 1000 * attempt;
+          console.log(`[PPTX Export] Retry attempt ${attempt + 1}/5, waiting ${waitTime}ms...`);
+          await new Promise((resolve) => setTimeout(resolve, waitTime));
+        } else {
+          console.log('[PPTX Export] First attempt to get slides...');
         }
         
-        const speakerNotes = Array.from(slidesWrapper.querySelectorAll('[data-speaker-note]')).map(
-          (el) => el.getAttribute('data-speaker-note') || ''
-        );
-        
-        const slides = Array.from(slidesWrapper.querySelectorAll(':scope > div > div'));
-        
-        return {
-          slidesCount: slides.length,
-          speakerNotes: speakerNotes
-        };
-      })();
-    `);
+        const result = await window.webContents.executeJavaScript(`
+          (function() {
+            try {
+              console.log('[PPTX Export] Checking for presentation-slides-wrapper...');
+              const slidesWrapper = document.getElementById('presentation-slides-wrapper');
+              if (!slidesWrapper) {
+                console.warn('[PPTX Export] presentation-slides-wrapper not found');
+                return {
+                  error: 'Presentation slides not found',
+                  slidesCount: 0,
+                  speakerNotes: []
+                };
+              }
+              
+              console.log('[PPTX Export] Found wrapper, getting speaker notes and slides...');
+              const speakerNotes = Array.from(slidesWrapper.querySelectorAll('[data-speaker-note]')).map(
+                (el) => el.getAttribute('data-speaker-note') || ''
+              );
+              
+              const slides = Array.from(slidesWrapper.querySelectorAll(':scope > div > div'));
+              console.log('[PPTX Export] Found ' + slides.length + ' slides and ' + speakerNotes.length + ' speaker notes');
+              
+              if (slides.length === 0) {
+                console.warn('[PPTX Export] Wrapper found but has 0 slides');
+                return {
+                  error: 'No slides found in presentation-slides-wrapper',
+                  slidesCount: 0,
+                  speakerNotes: []
+                };
+              }
+              
+              return {
+                slidesCount: slides.length,
+                speakerNotes: speakerNotes
+              };
+            } catch (error) {
+              console.error('[PPTX Export] Error in getSlidesAndSpeakerNotes:', error);
+              return {
+                error: error.message || String(error),
+                slidesCount: 0,
+                speakerNotes: []
+              };
+            }
+          })();
+        `);
 
-    return {
-      slides: Array(result.slidesCount)
-        .fill(null)
-        .map((_, i) => i),
-      speakerNotes: result.speakerNotes,
-    };
+        console.log('[PPTX Export] Result from attempt', attempt + 1, ':', result);
+
+        if (result.error) {
+          lastError = new ApiError(`Failed to get slides data: ${result.error}`);
+          console.warn(`[PPTX Export] Attempt ${attempt + 1} failed:`, result.error);
+          if (attempt < 4) {
+            continue; // Retry
+          }
+          throw lastError;
+        }
+
+        if (!result.slidesCount || result.slidesCount === 0) {
+          lastError = new ApiError('No slides found in presentation');
+          console.warn(`[PPTX Export] Attempt ${attempt + 1} found 0 slides`);
+          if (attempt < 4) {
+            continue; // Retry
+          }
+          throw lastError;
+        }
+
+        console.log(`[PPTX Export] Successfully got ${result.slidesCount} slides on attempt ${attempt + 1}`);
+        return {
+          slides: Array(result.slidesCount)
+            .fill(null)
+            .map((_, i) => i),
+          speakerNotes: result.speakerNotes || [],
+        };
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        console.error(`[PPTX Export] Attempt ${attempt + 1} threw error:`, lastError.message);
+        if (attempt < 4) {
+          continue; // Retry
+        }
+        throw lastError;
+      }
+    }
+    
+    // Should never reach here, but just in case
+    throw lastError || new ApiError('Failed to get slides data after multiple attempts');
   } catch (error) {
-    console.error('Error executing JavaScript in slides page:', error);
+    console.error('[PPTX Export] Error executing JavaScript in slides page:', error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new ApiError(`Failed to get slides data: ${errorMessage}`);
   }
@@ -275,7 +573,7 @@ async function getAllChildElementsAttributes(
           const slide = slides[${slideIndex}];
           
           if (!slide) {
-            throw new Error('Slide not found at index ${slideIndex}');
+            throw new Error('Slide not found at index ' + ${slideIndex});
           }
           
           ${getElementAttributesFunction()}
@@ -375,96 +673,111 @@ async function getAllChildElementsAttributes(
             attributes.opacity || inheritedOpacity
           );
           
-          allResults.push(...childResults.map((attr) => ({
+          allResults.push(...childResults.elements.map((attr) => ({
             attributes: attr,
             depth: depth + 1,
           })));
         }
         
-        return allResults;
-      }
-      
-      const allResults = getAllChildElementsAttributesRecursive(slide, null, 0, undefined, undefined, undefined, undefined, undefined);
-      const rootRect = {
-        left: 0,
-        top: 0,
-        width: 1280,
-        height: 720,
-      };
-      
-      let backgroundColor = undefined;
-      const elementsWithRootPosition = allResults.filter(({ attributes }) => {
-        return (
-          attributes.position &&
-          attributes.position.left === 0 &&
-          attributes.position.top === 0 &&
-          attributes.position.width === rootRect.width &&
-          attributes.position.height === rootRect.height
-        );
-      });
-      
-      for (const { attributes } of elementsWithRootPosition) {
-        if (attributes.background && attributes.background.color) {
-          backgroundColor = attributes.background.color;
-          break;
+        let backgroundColor = inheritedBackground?.color;
+        if (depth === 0) {
+          const elementsWithRootPosition = allResults.filter(({ attributes }) => {
+            return (
+              attributes.position &&
+              attributes.position.left === 0 &&
+              attributes.position.top === 0 &&
+              attributes.position.width === rootRect.width &&
+              attributes.position.height === rootRect.height
+            );
+          });
+          
+          for (const { attributes } of elementsWithRootPosition) {
+            if (attributes.background && attributes.background.color) {
+              backgroundColor = attributes.background.color;
+              break;
+            }
+          }
+        }
+        
+        const filteredResults = depth === 0
+          ? allResults.filter(({ attributes }) => {
+              const hasBackground = attributes.background && attributes.background.color;
+              const hasBorder = attributes.border && attributes.border.color;
+              const hasShadow = attributes.shadow && attributes.shadow.color;
+              const hasText = attributes.innerText && attributes.innerText.trim().length > 0;
+              const hasImage = attributes.imageSrc;
+              const isSvg = attributes.tagName === 'svg';
+              const isCanvas = attributes.tagName === 'canvas';
+              const isTable = attributes.tagName === 'table';
+              
+              const occupiesRoot =
+                attributes.position &&
+                attributes.position.left === 0 &&
+                attributes.position.top === 0 &&
+                attributes.position.width === rootRect.width &&
+                attributes.position.height === rootRect.height;
+              
+              const hasVisualProperties = hasBackground || hasBorder || hasShadow || hasText;
+              const hasSpecialContent = hasImage || isSvg || isCanvas || isTable;
+              
+              return (hasVisualProperties && !occupiesRoot) || hasSpecialContent;
+            })
+          : allResults;
+        
+        if (depth === 0) {
+          const sortedElements = filteredResults
+            .sort((a, b) => {
+              const zIndexA = a.attributes.zIndex || 0;
+              const zIndexB = b.attributes.zIndex || 0;
+              
+              if (zIndexA === zIndexB) {
+                return a.depth - b.depth;
+              }
+              
+              return zIndexB - zIndexA;
+            })
+            .map(({ attributes }) => {
+              if (
+                attributes.shadow &&
+                attributes.shadow.color &&
+                (!attributes.background || !attributes.background.color) &&
+                backgroundColor
+              ) {
+                attributes.background = {
+                  color: backgroundColor,
+                  opacity: undefined,
+                };
+              }
+              return attributes;
+            });
+          
+          return {
+            elements: sortedElements,
+            backgroundColor: backgroundColor,
+          };
+        } else {
+          return {
+            elements: filteredResults.map(({ attributes }) => attributes),
+            backgroundColor: backgroundColor,
+          };
         }
       }
       
-      const filteredResults = allResults.filter(({ attributes }) => {
-        const hasBackground = attributes.background && attributes.background.color;
-        const hasBorder = attributes.border && attributes.border.color;
-        const hasShadow = attributes.shadow && attributes.shadow.color;
-        const hasText = attributes.innerText && attributes.innerText.trim().length > 0;
-        const hasImage = attributes.imageSrc;
-        const isSvg = attributes.tagName === 'svg';
-        const isCanvas = attributes.tagName === 'canvas';
-        const isTable = attributes.tagName === 'table';
-        
-        const occupiesRoot =
-          attributes.position &&
-          attributes.position.left === 0 &&
-          attributes.position.top === 0 &&
-          attributes.position.width === rootRect.width &&
-          attributes.position.height === rootRect.height;
-        
-        const hasVisualProperties = hasBackground || hasBorder || hasShadow || hasText;
-        const hasSpecialContent = hasImage || isSvg || isCanvas || isTable;
-        
-        return (hasVisualProperties && !occupiesRoot) || hasSpecialContent;
-      });
-      
-      const sortedElements = filteredResults
-        .sort((a, b) => {
-          const zIndexA = a.attributes.zIndex || 0;
-          const zIndexB = b.attributes.zIndex || 0;
-          
-          if (zIndexA === zIndexB) {
-            return a.depth - b.depth;
-          }
-          
-          return zIndexB - zIndexA;
-        })
-        .map(({ attributes }) => {
-          if (attributes.shadow && attributes.shadow.color && 
-              (!attributes.background || !attributes.background.color) && backgroundColor) {
-            attributes.background = {
-              color: backgroundColor,
-              opacity: undefined,
-            };
-          }
-          return attributes;
-        });
-      
-      return {
-        elements: sortedElements,
-        backgroundColor: backgroundColor,
-      };
+      return getAllChildElementsAttributesRecursive(slide, null, 0, undefined, undefined, undefined, undefined, undefined);
         } catch (error) {
           console.error('Error in slide processing:', error);
-          throw error;
+          return {
+            error: error.message || String(error),
+            elements: [],
+            backgroundColor: undefined
+          };
         }
     })();
   `);
+
+    if (result.error) {
+      throw new ApiError(`Failed to analyze slide ${slideIndex}: ${result.error}`);
+    }
 
     return result;
   } catch (error) {
@@ -489,14 +802,20 @@ function getElementAttributesFunction(): string {
             const parts = values.split(',').map((part) => part.trim());
             
             if (parts.length >= 4) {
-              const alpha = parseFloat(parts[3]);
+              const opacity = parseFloat(parts[3]);
+              const rgbColor = color.replace(/rgba?\\(|hsla?\\(|\\)/g, '').split(',').slice(0, 3).join(',');
+              const rgbString = color.startsWith('rgba') ? 'rgb(' + rgbColor + ')' : 'hsl(' + rgbColor + ')';
+              
               const canvas = document.createElement('canvas');
               const ctx = canvas.getContext('2d');
               if (ctx) {
-                ctx.fillStyle = color.replace(/,\\s*[\\d.]+\\)/, ')');
+                ctx.fillStyle = rgbString;
                 const hexColor = ctx.fillStyle;
                 const hex = hexColor.startsWith('#') ? hexColor.substring(1) : hexColor;
-                return { hex, opacity: alpha };
+                return {
+                  hex: hex,
+                  opacity: isNaN(opacity) ? undefined : opacity,
+                };
               }
             }
           }
@@ -509,13 +828,13 @@ function getElementAttributesFunction(): string {
             ctx.fillStyle = color;
             const hexColor = ctx.fillStyle;
             const hex = hexColor.startsWith('#') ? hexColor.substring(1) : hexColor;
-            return { hex, opacity: undefined };
+            return { hex: hex, opacity: undefined };
           }
         }
         
         if (color.startsWith('#')) {
           const hex = color.substring(1);
-          return { hex, opacity: undefined };
+          return { hex: hex, opacity: undefined };
         }
         
         const canvas = document.createElement('canvas');
@@ -525,7 +844,7 @@ function getElementAttributesFunction(): string {
         ctx.fillStyle = color;
         const hexColor = ctx.fillStyle;
         const hex = hexColor.startsWith('#') ? hexColor.substring(1) : hexColor;
-        return { hex, opacity: undefined };
+        return { hex: hex, opacity: undefined };
       }
       
       function hasOnlyTextNodes(el) {
@@ -539,124 +858,508 @@ function getElementAttributesFunction(): string {
         return true;
       }
       
-      const computedStyles = window.getComputedStyle(el);
-      const rect = el.getBoundingClientRect();
-      
-      const position = {
-        left: isFinite(rect.left) ? rect.left : 0,
-        top: isFinite(rect.top) ? rect.top : 0,
-        width: isFinite(rect.width) ? rect.width : 0,
-        height: isFinite(rect.height) ? rect.height : 0,
-      };
-      
-      const backgroundColorResult = colorToHex(computedStyles.backgroundColor);
-      const background = backgroundColorResult.hex || backgroundColorResult.opacity !== undefined ? {
-        color: backgroundColorResult.hex,
-        opacity: backgroundColorResult.opacity,
-      } : undefined;
-      
-      const borderColorResult = colorToHex(computedStyles.borderColor);
-      const borderWidth = parseFloat(computedStyles.borderWidth);
-      const border = borderWidth !== 0 && (borderColorResult.hex || borderColorResult.opacity !== undefined) ? {
-        color: borderColorResult.hex,
-        width: isNaN(borderWidth) ? undefined : borderWidth,
-        opacity: borderColorResult.opacity,
-      } : undefined;
-      
-      const fontSize = parseFloat(computedStyles.fontSize);
-      const fontWeight = parseInt(computedStyles.fontWeight);
-      const fontColorResult = colorToHex(computedStyles.color);
-      const fontFamily = computedStyles.fontFamily;
-      const fontStyle = computedStyles.fontStyle;
-      
-      let fontName = undefined;
-      if (fontFamily !== 'initial') {
-        const firstFont = fontFamily.split(',')[0].trim().replace(/['"]/g, '');
-        fontName = firstFont;
+      function parsePosition(el) {
+        const rect = el.getBoundingClientRect();
+        return {
+          left: isFinite(rect.left) ? rect.left : 0,
+          top: isFinite(rect.top) ? rect.top : 0,
+          width: isFinite(rect.width) ? rect.width : 0,
+          height: isFinite(rect.height) ? rect.height : 0,
+        };
       }
       
-      const font = fontName || !isNaN(fontSize) || !isNaN(fontWeight) || fontColorResult.hex || fontStyle === 'italic' ? {
-        name: fontName,
-        size: isNaN(fontSize) ? undefined : fontSize,
-        weight: isNaN(fontWeight) ? undefined : fontWeight,
-        color: fontColorResult.hex,
-        italic: fontStyle === 'italic',
-      } : undefined;
-      
-      const innerText = hasOnlyTextNodes(el) ? el.textContent || undefined : undefined;
-      
-      const zIndex = parseInt(computedStyles.zIndex);
-      const zIndexValue = isNaN(zIndex) ? 0 : zIndex;
-      
-      const textAlign = computedStyles.textAlign;
-      const objectFit = computedStyles.objectFit;
-      
-      const backgroundImage = computedStyles.backgroundImage;
-      let parsedBackgroundImage;
-      if (backgroundImage && backgroundImage !== 'none') {
-        const urlMatch = backgroundImage.match(/url\\(['"]?([^'"]+)['"]?\\)/);
-        if (urlMatch && urlMatch[1]) {
-          parsedBackgroundImage = urlMatch[1];
-        }
-      }
-      
-      const imageSrc = el.src || parsedBackgroundImage;
-      
-      const borderRadius = computedStyles.borderRadius;
-      let borderRadiusValue;
-      if (borderRadius && borderRadius !== '0px') {
-        const radiusParts = borderRadius.split(' ').map((part) => parseFloat(part));
-        if (radiusParts.length === 1) {
-          borderRadiusValue = [radiusParts[0], radiusParts[0], radiusParts[0], radiusParts[0]];
-        } else if (radiusParts.length === 2) {
-          borderRadiusValue = [radiusParts[0], radiusParts[1], radiusParts[0], radiusParts[1]];
-        } else if (radiusParts.length === 3) {
-          borderRadiusValue = [radiusParts[0], radiusParts[1], radiusParts[2], radiusParts[1]];
-        } else if (radiusParts.length === 4) {
-          borderRadiusValue = radiusParts;
+      function parseBackground(computedStyles) {
+        const backgroundColorResult = colorToHex(computedStyles.backgroundColor);
+        
+        const background = {
+          color: backgroundColorResult.hex,
+          opacity: backgroundColorResult.opacity,
+        };
+        
+        if (!background.color && background.opacity === undefined) {
+          return undefined;
         }
         
-        if (borderRadiusValue) {
-          const maxRadiusX = rect.width / 2;
-          const maxRadiusY = rect.height / 2;
-          borderRadiusValue = borderRadiusValue.map((radius, index) => {
-            const maxRadius = index % 2 === 0 ? maxRadiusX : maxRadiusY;
-            return Math.min(radius, maxRadius);
+        return background;
+      }
+      
+      function parseBackgroundImage(computedStyles) {
+        const backgroundImage = computedStyles.backgroundImage;
+        
+        if (!backgroundImage || backgroundImage === 'none') {
+          return undefined;
+        }
+        
+        const urlMatch = backgroundImage.match(/url\\(['"]?([^'"]+)['"]?\\)/);
+        if (urlMatch && urlMatch[1]) {
+          return urlMatch[1];
+        }
+        
+        return undefined;
+      }
+      
+      function parseBorder(computedStyles) {
+        const borderColorResult = colorToHex(computedStyles.borderColor);
+        const borderWidth = parseFloat(computedStyles.borderWidth);
+        
+        if (borderWidth === 0) {
+          return undefined;
+        }
+        
+        const border = {
+          color: borderColorResult.hex,
+          width: isNaN(borderWidth) ? undefined : borderWidth,
+          opacity: borderColorResult.opacity,
+        };
+        
+        if (!border.color && border.width === undefined && border.opacity === undefined) {
+          return undefined;
+        }
+        
+        return border;
+      }
+      
+      function parseShadow(computedStyles) {
+        const boxShadow = computedStyles.boxShadow;
+        let shadow = {};
+        
+        if (boxShadow && boxShadow !== 'none') {
+          const shadows = [];
+          let currentShadow = '';
+          let parenCount = 0;
+          
+          for (let i = 0; i < boxShadow.length; i++) {
+            const char = boxShadow[i];
+            if (char === '(') {
+              parenCount++;
+            } else if (char === ')') {
+              parenCount--;
+            } else if (char === ',' && parenCount === 0) {
+              shadows.push(currentShadow.trim());
+              currentShadow = '';
+              continue;
+            }
+            currentShadow += char;
+          }
+          
+          if (currentShadow.trim()) {
+            shadows.push(currentShadow.trim());
+          }
+          
+          let selectedShadow = '';
+          let bestShadowScore = -1;
+          
+          for (let i = 0; i < shadows.length; i++) {
+            const shadowStr = shadows[i];
+            
+            const shadowParts = shadowStr.split(' ');
+            const numericParts = [];
+            const colorParts = [];
+            let isInset = false;
+            let currentColor = '';
+            let inColorFunction = false;
+            
+            for (let j = 0; j < shadowParts.length; j++) {
+              const part = shadowParts[j];
+              const trimmedPart = part.trim();
+              if (trimmedPart === '') continue;
+              
+              if (trimmedPart.toLowerCase() === 'inset') {
+                isInset = true;
+                continue;
+              }
+              
+              if (trimmedPart.match(/^(rgba?|hsla?)\\s*\\(/i)) {
+                inColorFunction = true;
+                currentColor = trimmedPart;
+                continue;
+              }
+              
+              if (inColorFunction) {
+                currentColor += ' ' + trimmedPart;
+                
+                const openParens = (currentColor.match(/\\(/g) || []).length;
+                const closeParens = (currentColor.match(/\\)/g) || []).length;
+                
+                if (openParens <= closeParens) {
+                  colorParts.push(currentColor);
+                  currentColor = '';
+                  inColorFunction = false;
+                }
+                continue;
+              }
+              
+              const numericValue = parseFloat(trimmedPart);
+              if (!isNaN(numericValue)) {
+                numericParts.push(numericValue);
+              } else {
+                colorParts.push(trimmedPart);
+              }
+            }
+            
+            let hasVisibleColor = false;
+            if (colorParts.length > 0) {
+              const shadowColor = colorParts.join(' ');
+              const colorResult = colorToHex(shadowColor);
+              hasVisibleColor = !!(colorResult.hex && colorResult.hex !== '000000' && colorResult.opacity !== 0);
+            }
+            
+            const hasNonZeroValues = numericParts.some((value) => value !== 0);
+            
+            let shadowScore = 0;
+            if (hasNonZeroValues) {
+              shadowScore += numericParts.filter((value) => value !== 0).length;
+            }
+            if (hasVisibleColor) {
+              shadowScore += 2;
+            }
+            
+            if ((hasNonZeroValues || hasVisibleColor) && shadowScore > bestShadowScore) {
+              selectedShadow = shadowStr;
+              bestShadowScore = shadowScore;
+            }
+          }
+          
+          if (!selectedShadow && shadows.length > 0) {
+            selectedShadow = shadows[0];
+          }
+          
+          if (selectedShadow) {
+            const shadowParts = selectedShadow.split(' ');
+            const numericParts = [];
+            const colorParts = [];
+            let isInset = false;
+            let currentColor = '';
+            let inColorFunction = false;
+            
+            for (let i = 0; i < shadowParts.length; i++) {
+              const part = shadowParts[i];
+              const trimmedPart = part.trim();
+              if (trimmedPart === '') continue;
+              
+              if (trimmedPart.toLowerCase() === 'inset') {
+                isInset = true;
+                continue;
+              }
+              
+              if (trimmedPart.match(/^(rgba?|hsla?)\\s*\\(/i)) {
+                inColorFunction = true;
+                currentColor = trimmedPart;
+                continue;
+              }
+              
+              if (inColorFunction) {
+                currentColor += ' ' + trimmedPart;
+                
+                const openParens = (currentColor.match(/\\(/g) || []).length;
+                const closeParens = (currentColor.match(/\\)/g) || []).length;
+                
+                if (openParens <= closeParens) {
+                  colorParts.push(currentColor);
+                  currentColor = '';
+                  inColorFunction = false;
+                }
+                continue;
+              }
+              
+              const numericValue = parseFloat(trimmedPart);
+              if (!isNaN(numericValue)) {
+                numericParts.push(numericValue);
+              } else {
+                colorParts.push(trimmedPart);
+              }
+            }
+            
+            if (numericParts.length >= 2) {
+              const offsetX = numericParts[0];
+              const offsetY = numericParts[1];
+              const blurRadius = numericParts.length >= 3 ? numericParts[2] : 0;
+              const spreadRadius = numericParts.length >= 4 ? numericParts[3] : 0;
+              
+              if (colorParts.length > 0) {
+                const shadowColor = colorParts.join(' ');
+                const shadowColorResult = colorToHex(shadowColor);
+                
+                if (shadowColorResult.hex) {
+                  shadow = {
+                    offset: [offsetX, offsetY],
+                    color: shadowColorResult.hex,
+                    opacity: shadowColorResult.opacity,
+                    radius: blurRadius,
+                    spread: spreadRadius,
+                    inset: isInset,
+                    angle: Math.atan2(offsetY, offsetX) * (180 / Math.PI),
+                  };
+                }
+              }
+            }
+          }
+        }
+        
+        if (Object.keys(shadow).length === 0) {
+          return undefined;
+        }
+        
+        return shadow;
+      }
+      
+      function parseFont(computedStyles) {
+        const fontSize = parseFloat(computedStyles.fontSize);
+        const fontWeight = parseInt(computedStyles.fontWeight);
+        const fontColorResult = colorToHex(computedStyles.color);
+        const fontFamily = computedStyles.fontFamily;
+        const fontStyle = computedStyles.fontStyle;
+        
+        let fontName = undefined;
+        if (fontFamily !== 'initial') {
+          const firstFont = fontFamily.split(',')[0].trim().replace(/['"]/g, '');
+          fontName = firstFont;
+        }
+        
+        const font = {
+          name: fontName,
+          size: isNaN(fontSize) ? undefined : fontSize,
+          weight: isNaN(fontWeight) ? undefined : fontWeight,
+          color: fontColorResult.hex,
+          italic: fontStyle === 'italic',
+        };
+        
+        if (!font.name && font.size === undefined && font.weight === undefined && !font.color && !font.italic) {
+          return undefined;
+        }
+        
+        return font;
+      }
+      
+      function parseLineHeight(computedStyles, el) {
+        const lineHeight = computedStyles.lineHeight;
+        const innerText = el.textContent || '';
+        
+        const htmlEl = el;
+        
+        const fontSize = parseFloat(computedStyles.fontSize);
+        const computedLineHeight = parseFloat(computedStyles.lineHeight);
+        
+        const singleLineHeight = !isNaN(computedLineHeight) ? computedLineHeight : fontSize * 1.2;
+        
+        const hasExplicitLineBreaks = innerText.includes('\\n') || innerText.includes('\\r') || innerText.includes('\\r\\n');
+        const hasTextWrapping = htmlEl.offsetHeight > singleLineHeight * 2;
+        const hasOverflow = htmlEl.scrollHeight > htmlEl.clientHeight;
+        
+        const isMultiline = hasExplicitLineBreaks || hasTextWrapping || hasOverflow;
+        
+        if (isMultiline && lineHeight && lineHeight !== 'normal') {
+          const parsedLineHeight = parseFloat(lineHeight);
+          if (!isNaN(parsedLineHeight)) {
+            return parsedLineHeight;
+          }
+        }
+        
+        return undefined;
+      }
+      
+      function parseMargin(computedStyles) {
+        const marginTop = parseFloat(computedStyles.marginTop);
+        const marginBottom = parseFloat(computedStyles.marginBottom);
+        const marginLeft = parseFloat(computedStyles.marginLeft);
+        const marginRight = parseFloat(computedStyles.marginRight);
+        const marginObj = {
+          top: isNaN(marginTop) ? undefined : marginTop,
+          bottom: isNaN(marginBottom) ? undefined : marginBottom,
+          left: isNaN(marginLeft) ? undefined : marginLeft,
+          right: isNaN(marginRight) ? undefined : marginRight,
+        };
+        
+        return marginObj.top === 0 && marginObj.bottom === 0 && marginObj.left === 0 && marginObj.right === 0
+          ? undefined
+          : marginObj;
+      }
+      
+      function parsePadding(computedStyles) {
+        const paddingTop = parseFloat(computedStyles.paddingTop);
+        const paddingBottom = parseFloat(computedStyles.paddingBottom);
+        const paddingLeft = parseFloat(computedStyles.paddingLeft);
+        const paddingRight = parseFloat(computedStyles.paddingRight);
+        const paddingObj = {
+          top: isNaN(paddingTop) ? undefined : paddingTop,
+          bottom: isNaN(paddingBottom) ? undefined : paddingBottom,
+          left: isNaN(paddingLeft) ? undefined : paddingLeft,
+          right: isNaN(paddingRight) ? undefined : paddingRight,
+        };
+        
+        return paddingObj.top === 0 && paddingObj.bottom === 0 && paddingObj.left === 0 && paddingObj.right === 0
+          ? undefined
+          : paddingObj;
+      }
+      
+      function parseBorderRadius(computedStyles, el) {
+        const borderRadius = computedStyles.borderRadius;
+        let borderRadiusValue;
+        
+        if (borderRadius && borderRadius !== '0px') {
+          const radiusParts = borderRadius.split(' ').map((part) => parseFloat(part));
+          if (radiusParts.length === 1) {
+            borderRadiusValue = [radiusParts[0], radiusParts[0], radiusParts[0], radiusParts[0]];
+          } else if (radiusParts.length === 2) {
+            borderRadiusValue = [radiusParts[0], radiusParts[1], radiusParts[0], radiusParts[1]];
+          } else if (radiusParts.length === 3) {
+            borderRadiusValue = [radiusParts[0], radiusParts[1], radiusParts[2], radiusParts[1]];
+          } else if (radiusParts.length === 4) {
+            borderRadiusValue = radiusParts;
+          }
+          
+          if (borderRadiusValue) {
+            const rect = el.getBoundingClientRect();
+            const maxRadiusX = rect.width / 2;
+            const maxRadiusY = rect.height / 2;
+            
+            borderRadiusValue = borderRadiusValue.map((radius, index) => {
+              const maxRadius = index === 0 || index === 2 ? maxRadiusX : maxRadiusY;
+              return Math.max(0, Math.min(radius, maxRadius));
+            });
+          }
+        }
+        
+        return borderRadiusValue;
+      }
+      
+      function parseShape(el, borderRadiusValue) {
+        if (el.tagName.toLowerCase() === 'img') {
+          return borderRadiusValue && borderRadiusValue.length === 4 && borderRadiusValue.every((radius) => radius === 50)
+            ? 'circle'
+            : 'rectangle';
+        }
+        return undefined;
+      }
+      
+      function parseFilters(computedStyles) {
+        const filter = computedStyles.filter;
+        if (!filter || filter === 'none') {
+          return undefined;
+        }
+        
+        const filters = {};
+        
+        const filterFunctions = filter.match(/[a-zA-Z]+\\([^)]*\\)/g);
+        if (filterFunctions) {
+          filterFunctions.forEach((func) => {
+            const match = func.match(/([a-zA-Z]+)\\(([^)]*)\\)/);
+            if (match) {
+              const filterType = match[1];
+              const value = parseFloat(match[2]);
+              
+              if (!isNaN(value)) {
+                switch (filterType) {
+                  case 'invert':
+                    filters.invert = value;
+                    break;
+                  case 'brightness':
+                    filters.brightness = value;
+                    break;
+                  case 'contrast':
+                    filters.contrast = value;
+                    break;
+                  case 'saturate':
+                    filters.saturate = value;
+                    break;
+                  case 'hue-rotate':
+                    filters.hueRotate = value;
+                    break;
+                  case 'blur':
+                    filters.blur = value;
+                    break;
+                  case 'grayscale':
+                    filters.grayscale = value;
+                    break;
+                  case 'sepia':
+                    filters.sepia = value;
+                    break;
+                  case 'opacity':
+                    filters.opacity = value;
+                    break;
+                }
+              }
+            }
           });
         }
+        
+        return Object.keys(filters).length > 0 ? filters : undefined;
       }
       
-      let shape = undefined;
-      if (el.tagName.toLowerCase() === 'img') {
-        shape = borderRadiusValue && borderRadiusValue.length === 4 && 
-                borderRadiusValue.every((radius) => radius === 50) ? 'circle' : 'rectangle';
+      function parseElementAttributes(el) {
+        let tagName = el.tagName.toLowerCase();
+        
+        const computedStyles = window.getComputedStyle(el);
+        
+        const position = parsePosition(el);
+        
+        const shadow = parseShadow(computedStyles);
+        
+        const background = parseBackground(computedStyles);
+        
+        const border = parseBorder(computedStyles);
+        
+        const font = parseFont(computedStyles);
+        
+        const lineHeight = parseLineHeight(computedStyles, el);
+        
+        const margin = parseMargin(computedStyles);
+        
+        const padding = parsePadding(computedStyles);
+        
+        const innerText = hasOnlyTextNodes(el) ? el.textContent || undefined : undefined;
+        
+        const zIndex = parseInt(computedStyles.zIndex);
+        const zIndexValue = isNaN(zIndex) ? 0 : zIndex;
+        
+        const textAlign = computedStyles.textAlign;
+        const objectFit = computedStyles.objectFit;
+        
+        const parsedBackgroundImage = parseBackgroundImage(computedStyles);
+        const imageSrc = el.src || parsedBackgroundImage;
+        
+        const borderRadiusValue = parseBorderRadius(computedStyles, el);
+        
+        const shape = parseShape(el, borderRadiusValue);
+        
+        const textWrap = computedStyles.whiteSpace !== 'nowrap';
+        
+        const filters = parseFilters(computedStyles);
+        
+        const opacity = parseFloat(computedStyles.opacity);
+        const elementOpacity = isNaN(opacity) ? undefined : opacity;
+        
+        return {
+          tagName: tagName,
+          id: el.id,
+          className: el.className && typeof el.className === 'string' ? el.className : el.className ? el.className.toString() : undefined,
+          innerText: innerText,
+          opacity: elementOpacity,
+          background: background,
+          border: border,
+          shadow: shadow,
+          font: font,
+          position: position,
+          margin: margin,
+          padding: padding,
+          zIndex: zIndexValue,
+          textAlign: textAlign !== 'left' ? textAlign : undefined,
+          lineHeight: lineHeight,
+          borderRadius: borderRadiusValue,
+          imageSrc: imageSrc,
+          objectFit: objectFit,
+          clip: false,
+          overlay: undefined,
+          shape: shape,
+          connectorType: undefined,
+          textWrap: textWrap,
+          should_screenshot: false,
+          element: undefined,
+          filters: filters,
+        };
       }
       
-      const opacity = parseFloat(computedStyles.opacity);
-      const elementOpacity = isNaN(opacity) ? undefined : opacity;
-      
-      const textWrap = computedStyles.whiteSpace !== 'nowrap';
-      
-      return {
-        tagName: el.tagName.toLowerCase(),
-        id: el.id,
-        className: el.className && typeof el.className === 'string' ? el.className : 
-                   el.className ? el.className.toString() : undefined,
-        innerText: innerText,
-        opacity: elementOpacity,
-        background: background,
-        border: border,
-        font: font,
-        position: position,
-        zIndex: zIndexValue,
-        textAlign: textAlign !== 'left' ? textAlign : undefined,
-        borderRadius: borderRadiusValue,
-        imageSrc: imageSrc,
-        objectFit: objectFit,
-        shape: shape,
-        textWrap: textWrap,
-        should_screenshot: false,
-      };
+      return parseElementAttributes(el);
     }
   `;
 }
@@ -738,7 +1441,55 @@ async function screenshotElement(
     }
   }
 
-  // For other elements (canvas, table), capture screenshot
+  // For other elements (canvas, table), hide all elements except target and capture screenshot
+  await window.webContents.executeJavaScript(`
+    (function() {
+      const slidesWrapper = document.getElementById('presentation-slides-wrapper');
+      const slides = Array.from(slidesWrapper.querySelectorAll(':scope > div > div'));
+      const slide = slides[${slideIndex}];
+      
+      const allElements = Array.from(slide.querySelectorAll('*'));
+      const targetElement = allElements.find((el) => {
+        const rect = el.getBoundingClientRect();
+        return el.tagName.toLowerCase() === '${element.tagName}' &&
+               Math.abs(rect.left - ${element.position!.left}) < 1 &&
+               Math.abs(rect.top - ${element.position!.top}) < 1 &&
+               Math.abs(rect.width - ${element.position!.width}) < 1 &&
+               Math.abs(rect.height - ${element.position!.height}) < 1;
+      });
+      
+      if (!targetElement) return;
+      
+      const originalOpacities = new Map();
+      const allDocumentElements = document.querySelectorAll('*');
+      
+      allDocumentElements.forEach((elem) => {
+        const computedStyle = window.getComputedStyle(elem);
+        originalOpacities.set(elem, computedStyle.opacity);
+        
+        if (
+          targetElement === elem ||
+          targetElement.contains(elem) ||
+          elem.contains(targetElement)
+        ) {
+          elem.style.opacity = computedStyle.opacity || '1';
+          return;
+        }
+        
+        elem.style.opacity = '0';
+      });
+      
+      targetElement.__restoreStyles = function() {
+        originalOpacities.forEach((opacity, elem) => {
+          elem.style.opacity = opacity;
+        });
+      };
+    })();
+  `);
+
+  // Small delay to ensure styles are applied
+  await new Promise((resolve) => setTimeout(resolve, 50));
+
   const rect = {
     x: element.position!.left,
     y: element.position!.top,
@@ -748,6 +1499,29 @@ async function screenshotElement(
 
   const screenshot = await window.webContents.capturePage(rect);
   fs.writeFileSync(screenshotPath, screenshot.toPNG());
+
+  // Restore original opacities
+  await window.webContents.executeJavaScript(`
+    (function() {
+      const slidesWrapper = document.getElementById('presentation-slides-wrapper');
+      const slides = Array.from(slidesWrapper.querySelectorAll(':scope > div > div'));
+      const slide = slides[${slideIndex}];
+      
+      const allElements = Array.from(slide.querySelectorAll('*'));
+      const targetElement = allElements.find((el) => {
+        const rect = el.getBoundingClientRect();
+        return el.tagName.toLowerCase() === '${element.tagName}' &&
+               Math.abs(rect.left - ${element.position!.left}) < 1 &&
+               Math.abs(rect.top - ${element.position!.top}) < 1 &&
+               Math.abs(rect.width - ${element.position!.width}) < 1 &&
+               Math.abs(rect.height - ${element.position!.height}) < 1;
+      });
+      
+      if (targetElement && targetElement.__restoreStyles) {
+        targetElement.__restoreStyles();
+      }
+    })();
+  `);
 
   return screenshotPath;
 }

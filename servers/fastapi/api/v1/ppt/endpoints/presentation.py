@@ -427,6 +427,11 @@ async def export_presentation_as_pptx_or_pdf(
     ] = "pptx",
     sql_session: AsyncSession = Depends(get_async_session),
 ):
+    """
+    Export a presentation as PPTX or PDF.
+    This Api is used to export via the nextjs app i.e using the puppeteer to export the presentation.
+    
+    """
     presentation = await sql_session.get(PresentationModel, id)
 
     if not presentation:
