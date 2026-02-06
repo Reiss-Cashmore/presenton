@@ -9,6 +9,7 @@ from api.v1.ppt.router import API_V1_PPT_ROUTER
 from api.v1.webhook.router import API_V1_WEBHOOK_ROUTER
 from api.v1.mock.router import API_V1_MOCK_ROUTER
 from utils.get_env import get_app_data_directory_env
+from utils.path_helpers import get_resource_path
 
 
 app = FastAPI(lifespan=app_lifespan)
@@ -26,9 +27,14 @@ if app_data_dir:
     app.mount("/app_data", StaticFiles(directory=app_data_dir), name="app_data")
 
 # Mount static directory for icons, placeholder images, etc.
-static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
+static_dir = get_resource_path("static")
+print(f"[FastAPI] Static directory path: {static_dir}")
+print(f"[FastAPI] Static directory exists: {os.path.exists(static_dir)}")
 if os.path.exists(static_dir):
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
+    print(f"[FastAPI] Static files mounted successfully from {static_dir}")
+else:
+    print(f"[FastAPI] WARNING: Static directory not found at {static_dir}")
 
 # Middlewares
 origins = ["*"]

@@ -8,6 +8,7 @@ from services.icon_finder_service import ICON_FINDER_SERVICE
 from services.image_generation_service import ImageGenerationService
 from utils.asset_directory_utils import get_images_directory
 from utils.dict_utils import get_dict_at_path, get_dict_paths_with_key, set_dict_at_path
+from utils.path_helpers import get_resource_path
 
 
 async def process_slide_and_fetch_assets(
@@ -56,8 +57,8 @@ async def process_slide_and_fetch_assets(
         if icon_result and len(icon_result) > 0:
             icon_dict["__icon_url__"] = icon_result[0]
         else:
-            # Fallback to placeholder if no icon found - use absolute path with file:// for Electron
-            placeholder_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "static", "icons", "placeholder.svg"))
+            # Fallback to placeholder if no icon found
+            placeholder_path = get_resource_path(os.path.join("static", "icons", "placeholder.svg"))
             icon_dict["__icon_url__"] = f"file://{placeholder_path}"
         set_dict_at_path(slide.content, icon_path, icon_dict)
 
@@ -189,14 +190,14 @@ def process_slide_add_placeholder_assets(slide: SlideModel):
 
     for image_path in image_paths:
         image_dict = get_dict_at_path(slide.content, image_path)
-        # Use absolute path with file:// for Electron
-        placeholder_img_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "static", "images", "placeholder.jpg"))
+        # Use proper path resolution for packaged environments
+        placeholder_img_path = get_resource_path(os.path.join("static", "images", "placeholder.jpg"))
         image_dict["__image_url__"] = f"file://{placeholder_img_path}"
         set_dict_at_path(slide.content, image_path, image_dict)
 
     for icon_path in icon_paths:
         icon_dict = get_dict_at_path(slide.content, icon_path)
-        # Use absolute path with file:// for Electron
-        placeholder_icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "static", "icons", "placeholder.svg"))
+        # Use proper path resolution for packaged environments
+        placeholder_icon_path = get_resource_path(os.path.join("static", "icons", "placeholder.svg"))
         icon_dict["__icon_url__"] = f"file://{placeholder_icon_path}"
         set_dict_at_path(slide.content, icon_path, icon_dict)

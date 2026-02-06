@@ -92,8 +92,17 @@ const Header = ({
       trackEvent(MixpanelEvent.Header_ExportAsPPTX_API_Call);
       const pptx_path = await PresentationGenerationApi.exportAsPPTX(pptx_model);
       if (pptx_path) {
-        // window.open(pptx_path, '_self');
-        downloadLink(pptx_path);
+        // Check if we're in Electron mode
+        if (typeof window !== 'undefined' && (window as any).electron?.fileDownloaded) {
+          // Use Electron's file download dialog
+          const result = await (window as any).electron.fileDownloaded(pptx_path);
+          if (!result.success) {
+            throw new Error('Export cancelled or failed');
+          }
+        } else {
+          // Fallback to direct download for web mode
+          downloadLink(pptx_path);
+        }
       } else {
         throw new Error("No path returned from export");
       }

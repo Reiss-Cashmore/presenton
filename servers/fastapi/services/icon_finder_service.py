@@ -2,13 +2,14 @@ import asyncio
 import json
 import os
 from fastembed_vectorstore import FastembedEmbeddingModel, FastembedVectorstore
+from utils.path_helpers import get_resource_path, get_writable_path
 
 
 class IconFinderService:
     def __init__(self):
         self.model = FastembedEmbeddingModel.AllMiniLML6V2
-        # Use absolute path to ensure it works in packaged environments
-        self.cache_directory = os.path.abspath("fastembed_cache")
+        # Use writable path for cache since it needs to be modified
+        self.cache_directory = get_writable_path("fastembed_cache")
         self.vectorstore = None
         self._initialized = False
         self._initialization_failed = False
@@ -31,20 +32,41 @@ class IconFinderService:
             return
             
         try:
-            icons_vectorstore_path = os.path.abspath("assets/icons-vectorstore.json")
-            icons_path = os.path.abspath("assets/icons.json")
+            # Try bundled vectorstore first (read-only location)
+            bundled_vectorstore_path = get_resource_path("assets/icons-vectorstore.json")
+            # Writable location for user-created vectorstore
+            writable_vectorstore_path = get_writable_path("assets/icons-vectorstore.json")
+            # Icons JSON should be in bundled assets
+            icons_path = get_resource_path("assets/icons.json")
             
-            if os.path.exists(icons_vectorstore_path):
-                print(f"Loading existing vectorstore from {icons_vectorstore_path}")
+            print(f"[IconFinder] Bundled vectorstore path: {bundled_vectorstore_path}")
+            print(f"[IconFinder] Writable vectorstore path: {writable_vectorstore_path}")
+            print(f"[IconFinder] Icons.json path: {icons_path}")
+            print(f"[IconFinder] Cache directory: {self.cache_directory}")
+            print(f"[IconFinder] Bundled vectorstore exists: {os.path.exists(bundled_vectorstore_path)}")
+            print(f"[IconFinder] Writable vectorstore exists: {os.path.exists(writable_vectorstore_path)}")
+            print(f"[IconFinder] Icons.json exists: {os.path.exists(icons_path)}")
+            
+            # Try to load from bundled location first, then writable location
+            vectorstore_path = None
+            if os.path.exists(bundled_vectorstore_path):
+                vectorstore_path = bundled_vectorstore_path
+                print(f"[IconFinder] Loading vectorstore from bundled location: {vectorstore_path}")
+            elif os.path.exists(writable_vectorstore_path):
+                vectorstore_path = writable_vectorstore_path
+                print(f"[IconFinder] Loading vectorstore from writable location: {vectorstore_path}")
+            
+            if vectorstore_path:
                 self.vectorstore = FastembedVectorstore.load(
-                    self.model, icons_vectorstore_path, cache_directory=self.cache_directory
+                    self.model, vectorstore_path, cache_directory=self.cache_directory
                 )
+                print("[IconFinder] Vectorstore loaded successfully")
             elif os.path.exists(icons_path):
-                print(f"Creating new vectorstore from {icons_path}")
+                print(f"[IconFinder] Creating new vectorstore from {icons_path}")
                 self.vectorstore = FastembedVectorstore(
                     self.model, cache_directory=self.cache_directory
                 )
-                with open(icons_path, "r") as f:
+                with open(icons_path, "r", encoding="utf-8") as f:
                     icons = json.load(f)
 
                 documents = []
@@ -55,18 +77,30 @@ class IconFinderService:
                         documents.append(doc_text)
 
                 if documents:
+                    print(f"[IconFinder] Embedding {len(documents)} icons...")
                     success = self.vectorstore.embed_documents(documents)
                     if success:
-                        print(f"Successfully embedded {len(documents)} icons")
-                        self.vectorstore.save(icons_vectorstore_path)
+                        print(f"[IconFinder] Successfully embedded {len(documents)} icons")
+                        # Save to writable location
+                        try:
+                            os.makedirs(os.path.dirname(writable_vectorstore_path), exist_ok=True)
+                            self.vectorstore.save(writable_vectorstore_path)
+                            print(f"[IconFinder] Vectorstore saved to {writable_vectorstore_path}")
+                        except Exception as e:
+                            print(f"[IconFinder] Warning: Could not save vectorstore: {e}")
+                            # Continue anyway - vectorstore is still usable in memory
                     else:
-                        print(f"Failed to embed {len(documents)} icons")
+                        print(f"[IconFinder] Failed to embed icons")
                         self._initialization_failed = True
+                else:
+                    print(f"[IconFinder] No icons found to embed")
+                    self._initialization_failed = True
             else:
-                print(f"Warning: Icons assets not found at {icons_path}")
+                print(f"[IconFinder] ERROR: Icons assets not found at {icons_path}")
                 self._initialization_failed = True
             
-            print("Icons collection initialized successfully.")
+            if not self._initialization_failed:
+                print("[IconFinder] Icons collection initialized successfully.")
         except Exception as e:
             print(f"Warning: Could not initialize icon finder service: {e}")
             print(f"Error type: {type(e).__name__}")

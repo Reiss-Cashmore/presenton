@@ -16,6 +16,7 @@ from pptx.oxml.xmlchemy import OxmlElement
 
 from pptx.util import Pt
 from pptx.dml.color import RGBColor
+from utils.path_helpers import get_resource_path
 
 from models.pptx_models import (
     PptxAutoShapeBoxModel,
@@ -85,6 +86,15 @@ class PptxPresentationCreator:
                         each_shape.picture.is_network = False
                         continue
                     
+                    # Handle /static/ URLs by converting to file path
+                    if image_path.startswith("/static/"):
+                        relative_static_path = image_path[len("/static/"):]
+                        local_path = get_resource_path(os.path.join("static", relative_static_path))
+                        each_shape.picture.path = local_path
+                        each_shape.picture.is_network = False
+                        print(f"[PPTX] Converted /static/ URL: {image_path} -> {local_path}")
+                        continue
+                    
                     if image_path.startswith("http"):
                         if "app_data/" in image_path:
                             relative_path = image_path.split("app_data/")[1]
@@ -114,6 +124,16 @@ class PptxPresentationCreator:
                         each_shape.picture.is_network = False
                         print(f"[PPTX] Converted file:// URL: {original_path} -> {image_path}")
                         print(f"[PPTX] File exists after conversion: {os.path.exists(image_path)}")
+                        continue
+                    
+                    # Handle /static/ URLs by converting to file path
+                    if image_path.startswith("/static/"):
+                        relative_static_path = image_path[len("/static/"):]
+                        local_path = get_resource_path(os.path.join("static", relative_static_path))
+                        each_shape.picture.path = local_path
+                        each_shape.picture.is_network = False
+                        print(f"[PPTX] Converted /static/ URL: {image_path} -> {local_path}")
+                        print(f"[PPTX] File exists after conversion: {os.path.exists(local_path)}")
                         continue
                     
                     if image_path.startswith("http"):
