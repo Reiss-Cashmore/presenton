@@ -1402,63 +1402,243 @@ async function screenshotElement(
     `${uuidv4()}.png`
   ) as `${string}.png`;
 
-  // For SVG elements, use convertSvgToPng
+  // For SVG elements, try Sharp first, then fallback to screenshot
   if (element.tagName === "svg") {
-    const svgHtml = await window.webContents.executeJavaScript(`
+    console.log('[PPTX Export] Processing SVG element at position:', element.position);
+    
+    const svgData = await window.webContents.executeJavaScript(`
       (function() {
-        const slidesWrapper = document.getElementById('presentation-slides-wrapper');
-        const slides = Array.from(slidesWrapper.querySelectorAll(':scope > div > div'));
-        const slide = slides[${slideIndex}];
+        try {
+          const slidesWrapper = document.getElementById('presentation-slides-wrapper');
+          const slides = Array.from(slidesWrapper.querySelectorAll(':scope > div > div'));
+          const slide = slides[${slideIndex}];
+          
+          if (!slide) {
+            return { error: 'Slide not found at index ${slideIndex}' };
+          }
+          
+          // IMPORTANT: Element positions were stored relative to the slide root.
+          // We need to convert them back to absolute viewport coordinates by
+          // adding the slide's bounding rect offset.
+          const slideRect = slide.getBoundingClientRect();
+          
+          // Target position in absolute viewport coordinates
+          const targetPos = {
+            left: ${element.position!.left} + slideRect.left,
+            top: ${element.position!.top} + slideRect.top,
+            width: ${element.position!.width},
+            height: ${element.position!.height}
+          };
+          
+          // Get all SVG elements in the slide
+          const allSvgs = Array.from(slide.querySelectorAll('svg'));
+          
+          let svgElement = null;
+          let bestMatch = null;
+          let bestDistance = Infinity;
+          const candidateInfo = [];
+          
+          for (const svg of allSvgs) {
+            const rect = svg.getBoundingClientRect();
+            const distance = Math.sqrt(
+              Math.pow(rect.left - targetPos.left, 2) +
+              Math.pow(rect.top - targetPos.top, 2) +
+              Math.pow(rect.width - targetPos.width, 2) +
+              Math.pow(rect.height - targetPos.height, 2)
+            );
+            
+            candidateInfo.push({
+              left: rect.left, 
+              top: rect.top, 
+              width: rect.width, 
+              height: rect.height, 
+              distance: distance
+            });
+            
+            if (distance < bestDistance) {
+              bestDistance = distance;
+              bestMatch = svg;
+            }
+            
+            // If very close match (within 2 pixels in all dimensions), use it
+            if (Math.abs(rect.left - targetPos.left) < 2 &&
+                Math.abs(rect.top - targetPos.top) < 2 &&
+                Math.abs(rect.width - targetPos.width) < 2 &&
+                Math.abs(rect.height - targetPos.height) < 2) {
+              svgElement = svg;
+              break;
+            }
+          }
+          
+          // If no exact match, use the best match if it's reasonably close
+          if (!svgElement && bestMatch && bestDistance < 100) {
+            svgElement = bestMatch;
+          }
+          
+          if (!svgElement) {
+            return { 
+              error: 'SVG not found', 
+              bestDistance: bestDistance, 
+              svgCount: allSvgs.length,
+              targetPos: targetPos,
+              slideRect: { left: slideRect.left, top: slideRect.top, width: slideRect.width, height: slideRect.height },
+              candidates: candidateInfo
+            };
+          }
         
-        const allElements = Array.from(slide.querySelectorAll('*'));
-        const svgElement = allElements.find((el) => {
-          const rect = el.getBoundingClientRect();
-          return el.tagName.toLowerCase() === 'svg' &&
-                 Math.abs(rect.left - ${element.position!.left}) < 1 &&
-                 Math.abs(rect.top - ${element.position!.top}) < 1 &&
-                 Math.abs(rect.width - ${element.position!.width}) < 1 &&
-                 Math.abs(rect.height - ${element.position!.height}) < 1;
-        });
-        
-        if (svgElement) {
-          const fontColor = window.getComputedStyle(svgElement).color;
-          svgElement.style.color = fontColor;
-          return svgElement.outerHTML;
+          // Clone the SVG to avoid modifying the original
+          const clonedSvg = svgElement.cloneNode(true);
+          
+          // Get computed styles from the original element and its parent
+          const computedStyle = window.getComputedStyle(svgElement);
+          const parentStyle = window.getComputedStyle(svgElement.parentElement);
+          const fontColor = computedStyle.color || parentStyle.color || '#000000';
+          
+          // Apply the color
+          clonedSvg.style.color = fontColor;
+          
+          // Ensure SVG has proper dimensions
+          const rect = svgElement.getBoundingClientRect();
+          if (!clonedSvg.hasAttribute('width')) {
+            clonedSvg.setAttribute('width', rect.width.toString());
+          }
+          if (!clonedSvg.hasAttribute('height')) {
+            clonedSvg.setAttribute('height', rect.height.toString());
+          }
+          
+          // Ensure viewBox is set
+          if (!clonedSvg.hasAttribute('viewBox')) {
+            const width = clonedSvg.getAttribute('width') || rect.width;
+            const height = clonedSvg.getAttribute('height') || rect.height;
+            clonedSvg.setAttribute('viewBox', \`0 0 \${width} \${height}\`);
+          }
+          
+          // Replace currentColor with actual color in all elements
+          const allSvgElements = clonedSvg.querySelectorAll('*');
+          allSvgElements.forEach((el) => {
+            ['stroke', 'fill', 'color'].forEach((attr) => {
+              const value = el.getAttribute(attr);
+              if (value === 'currentColor') {
+                el.setAttribute(attr, fontColor);
+              }
+            });
+            
+            // Also check inline styles
+            const style = el.getAttribute('style');
+            if (style && style.includes('currentColor')) {
+              el.setAttribute('style', style.replace(/currentColor/g, fontColor));
+            }
+          });
+          
+          // Also replace currentColor in the root SVG element
+          ['stroke', 'fill'].forEach((attr) => {
+            const value = clonedSvg.getAttribute(attr);
+            if (value === 'currentColor') {
+              clonedSvg.setAttribute(attr, fontColor);
+            }
+          });
+          
+          return { 
+            success: true, 
+            html: clonedSvg.outerHTML,
+            hasViewBox: clonedSvg.hasAttribute('viewBox'),
+            hasDimensions: clonedSvg.hasAttribute('width') && clonedSvg.hasAttribute('height'),
+            color: fontColor
+          };
+        } catch (error) {
+          return { 
+            error: 'Exception in SVG extraction: ' + (error.message || String(error)),
+            stack: error.stack
+          };
         }
-        
-        return null;
       })();
     `);
 
-    if (svgHtml) {
-      const svgBuffer = Buffer.from(svgHtml);
-      const pngBuffer = await sharp(svgBuffer)
-        .resize(
-          Math.round(element.position!.width!),
-          Math.round(element.position!.height!)
-        )
-        .toFormat("png")
-        .toBuffer();
-      fs.writeFileSync(screenshotPath, pngBuffer);
-      return screenshotPath;
+    console.log('[PPTX Export] SVG extraction result:', JSON.stringify({
+      success: svgData.success,
+      error: svgData.error, 
+      hasViewBox: svgData.hasViewBox,
+      hasDimensions: svgData.hasDimensions,
+      htmlLength: svgData.html?.length,
+      svgCount: svgData.svgCount,
+      bestDistance: svgData.bestDistance,
+      targetPos: svgData.targetPos,
+      candidatesCount: svgData.candidates?.length,
+      color: svgData.color
+    }, null, 2));
+
+    if (svgData.success && svgData.html) {
+      try {
+        console.log('[PPTX Export] Attempting Sharp conversion...');
+        const svgBuffer = Buffer.from(svgData.html);
+        const pngBuffer = await sharp(svgBuffer)
+          .resize(
+            Math.round(element.position!.width!),
+            Math.round(element.position!.height!),
+            {
+              fit: 'contain',
+              background: { r: 0, g: 0, b: 0, alpha: 0 }
+            }
+          )
+          .png()
+          .toBuffer();
+        fs.writeFileSync(screenshotPath, pngBuffer);
+        console.log('[PPTX Export] Successfully converted SVG with Sharp');
+        return screenshotPath;
+      } catch (error) {
+        console.error('[PPTX Export] Sharp conversion failed:', error);
+        console.log('[PPTX Export] SVG HTML preview:', svgData.html.substring(0, 500));
+        console.log('[PPTX Export] Falling back to screenshot method...');
+        // Fall through to screenshot method as fallback
+      }
+    } else {
+      console.warn('[PPTX Export] SVG extraction failed, using screenshot method');
     }
   }
 
-  // For other elements (canvas, table), hide all elements except target and capture screenshot
+  // Fallback screenshot method for SVG (when Sharp fails) and other elements (canvas, table)
+  console.log('[PPTX Export] Using screenshot method for', element.tagName, 'at position:', element.position);
+  
+  // Get the slide's absolute position to convert relative coords back to absolute
+  const slideRectForScreenshot = await window.webContents.executeJavaScript(`
+    (function() {
+      const slidesWrapper = document.getElementById('presentation-slides-wrapper');
+      const slides = Array.from(slidesWrapper.querySelectorAll(':scope > div > div'));
+      const slide = slides[${slideIndex}];
+      if (!slide) return { left: 0, top: 0 };
+      const rect = slide.getBoundingClientRect();
+      return { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
+    })();
+  `);
+  
+  // Convert relative element position to absolute viewport position
+  const absLeft = element.position!.left + slideRectForScreenshot.left;
+  const absTop = element.position!.top + slideRectForScreenshot.top;
+  
+  console.log('[PPTX Export] Slide rect:', slideRectForScreenshot, 'Absolute target:', { left: absLeft, top: absTop });
+  
   await window.webContents.executeJavaScript(`
     (function() {
       const slidesWrapper = document.getElementById('presentation-slides-wrapper');
       const slides = Array.from(slidesWrapper.querySelectorAll(':scope > div > div'));
       const slide = slides[${slideIndex}];
       
+      if (!slide) return;
+      
+      // Use absolute viewport coordinates for matching
+      const absLeft = ${absLeft};
+      const absTop = ${absTop};
+      const targetWidth = ${element.position!.width};
+      const targetHeight = ${element.position!.height};
+      
       const allElements = Array.from(slide.querySelectorAll('*'));
       const targetElement = allElements.find((el) => {
         const rect = el.getBoundingClientRect();
         return el.tagName.toLowerCase() === '${element.tagName}' &&
-               Math.abs(rect.left - ${element.position!.left}) < 1 &&
-               Math.abs(rect.top - ${element.position!.top}) < 1 &&
-               Math.abs(rect.width - ${element.position!.width}) < 1 &&
-               Math.abs(rect.height - ${element.position!.height}) < 1;
+               Math.abs(rect.left - absLeft) < 2 &&
+               Math.abs(rect.top - absTop) < 2 &&
+               Math.abs(rect.width - targetWidth) < 2 &&
+               Math.abs(rect.height - targetHeight) < 2;
       });
       
       if (!targetElement) return;
@@ -1493,15 +1673,18 @@ async function screenshotElement(
   // Small delay to ensure styles are applied
   await new Promise((resolve) => setTimeout(resolve, 50));
 
+  // capturePage uses absolute viewport coordinates
   const rect = {
-    x: element.position!.left,
-    y: element.position!.top,
+    x: absLeft,
+    y: absTop,
     width: element.position!.width,
     height: element.position!.height,
   };
 
+  console.log('[PPTX Export] Capturing screenshot at rect:', rect);
   const screenshot = await window.webContents.capturePage(rect);
   fs.writeFileSync(screenshotPath, screenshot.toPNG());
+  console.log('[PPTX Export] Screenshot saved to:', screenshotPath);
 
   // Restore original opacities
   await window.webContents.executeJavaScript(`
@@ -1510,14 +1693,21 @@ async function screenshotElement(
       const slides = Array.from(slidesWrapper.querySelectorAll(':scope > div > div'));
       const slide = slides[${slideIndex}];
       
+      if (!slide) return;
+      
+      const absLeft = ${absLeft};
+      const absTop = ${absTop};
+      const targetWidth = ${element.position!.width};
+      const targetHeight = ${element.position!.height};
+      
       const allElements = Array.from(slide.querySelectorAll('*'));
       const targetElement = allElements.find((el) => {
         const rect = el.getBoundingClientRect();
         return el.tagName.toLowerCase() === '${element.tagName}' &&
-               Math.abs(rect.left - ${element.position!.left}) < 1 &&
-               Math.abs(rect.top - ${element.position!.top}) < 1 &&
-               Math.abs(rect.width - ${element.position!.width}) < 1 &&
-               Math.abs(rect.height - ${element.position!.height}) < 1;
+               Math.abs(rect.left - absLeft) < 2 &&
+               Math.abs(rect.top - absTop) < 2 &&
+               Math.abs(rect.width - targetWidth) < 2 &&
+               Math.abs(rect.height - targetHeight) < 2;
       });
       
       if (targetElement && targetElement.__restoreStyles) {
