@@ -16,6 +16,7 @@ dependencies = [
     "fastembed-vectorstore>=0.4.2",
     "fastmcp>=2.11.0",
     "google-genai>=1.28.0",
+    "greenlet>=3.0.0",
     "nltk>=3.9.1",
     "openai>=1.98.0",
     "pathvalidate>=3.3.1",
