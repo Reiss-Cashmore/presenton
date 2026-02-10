@@ -1,5 +1,6 @@
 import os
 from typing import List, Optional
+from urllib.parse import unquote
 from lxml import etree
 from services.html_to_text_runs_service import (
     parse_html_text_to_text_runs as parse_inline_html_to_runs,
@@ -79,6 +80,8 @@ class PptxPresentationCreator:
                     # Handle file:// URLs by converting to local path
                     if image_path.startswith("file://"):
                         image_path = image_path.replace("file:///", "")
+                        # URL-decode the path (e.g. %20 -> space for macOS "Application Support")
+                        image_path = unquote(image_path)
                         # Check if it's a Windows path (has colon at index 1)
                         if not (len(image_path) > 1 and image_path[1] == ':'):
                             image_path = '/' + image_path
@@ -117,6 +120,8 @@ class PptxPresentationCreator:
                     if image_path.startswith("file://"):
                         original_path = image_path
                         image_path = image_path.replace("file:///", "")
+                        # URL-decode the path (e.g. %20 -> space for macOS "Application Support")
+                        image_path = unquote(image_path)
                         # Check if it's a Windows path (has colon at index 1)
                         if not (len(image_path) > 1 and image_path[1] == ':'):
                             image_path = '/' + image_path

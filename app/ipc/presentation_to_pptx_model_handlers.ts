@@ -1404,7 +1404,6 @@ async function screenshotElement(
 
   // For SVG elements, try Sharp first, then fallback to screenshot
   if (element.tagName === "svg") {
-    console.log('[PPTX Export] Processing SVG element at position:', element.position);
     
     const svgData = await window.webContents.executeJavaScript(`
       (function() {
@@ -1554,22 +1553,8 @@ async function screenshotElement(
       })();
     `);
 
-    console.log('[PPTX Export] SVG extraction result:', JSON.stringify({
-      success: svgData.success,
-      error: svgData.error, 
-      hasViewBox: svgData.hasViewBox,
-      hasDimensions: svgData.hasDimensions,
-      htmlLength: svgData.html?.length,
-      svgCount: svgData.svgCount,
-      bestDistance: svgData.bestDistance,
-      targetPos: svgData.targetPos,
-      candidatesCount: svgData.candidates?.length,
-      color: svgData.color
-    }, null, 2));
-
     if (svgData.success && svgData.html) {
       try {
-        console.log('[PPTX Export] Attempting Sharp conversion...');
         const svgBuffer = Buffer.from(svgData.html);
         const pngBuffer = await sharp(svgBuffer)
           .resize(
@@ -1583,21 +1568,17 @@ async function screenshotElement(
           .png()
           .toBuffer();
         fs.writeFileSync(screenshotPath, pngBuffer);
-        console.log('[PPTX Export] Successfully converted SVG with Sharp');
         return screenshotPath;
       } catch (error) {
-        console.error('[PPTX Export] Sharp conversion failed:', error);
-        console.log('[PPTX Export] SVG HTML preview:', svgData.html.substring(0, 500));
-        console.log('[PPTX Export] Falling back to screenshot method...');
+        console.warn('[PPTX Export] Sharp SVG conversion failed, falling back to screenshot:', (error as Error).message);
         // Fall through to screenshot method as fallback
       }
-    } else {
-      console.warn('[PPTX Export] SVG extraction failed, using screenshot method');
+    } else if (svgData.error) {
+      console.warn('[PPTX Export] SVG extraction failed:', svgData.error, '- using screenshot fallback');
     }
   }
 
   // Fallback screenshot method for SVG (when Sharp fails) and other elements (canvas, table)
-  console.log('[PPTX Export] Using screenshot method for', element.tagName, 'at position:', element.position);
   
   // Get the slide's absolute position to convert relative coords back to absolute
   const slideRectForScreenshot = await window.webContents.executeJavaScript(`
@@ -1681,10 +1662,8 @@ async function screenshotElement(
     height: element.position!.height,
   };
 
-  console.log('[PPTX Export] Capturing screenshot at rect:', rect);
   const screenshot = await window.webContents.capturePage(rect);
   fs.writeFileSync(screenshotPath, screenshot.toPNG());
-  console.log('[PPTX Export] Screenshot saved to:', screenshotPath);
 
   // Restore original opacities
   await window.webContents.executeJavaScript(`
