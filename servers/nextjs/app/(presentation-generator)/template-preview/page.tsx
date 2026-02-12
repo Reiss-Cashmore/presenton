@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { ExternalLink, Loader2, Plus } from "lucide-react";
 
 import { templates } from "@/app/presentation-templates";
-import type { TemplateLayoutsWithSettings } from "@/app/presentation-templates";
+import type { TemplateLayoutsWithSettings } from "@/app/presentation-templates/utils";
 import { TemplateWithData } from "@/app/presentation-templates/utils";
 import {
   useCustomTemplateSummaries,
@@ -111,61 +111,8 @@ const LayoutPreview = () => {
     }
   }, []);
 
-  useEffect(() => {
-    // Fetch summary to map custom template slug to template meta and last updated time
-    fetch(`/api/v1/ppt/template-management/summary`, {
-      headers: getHeader(),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        const map: Record<string, { lastUpdatedAt?: number; name?: string; description?: string }> = {};
-        if (data && Array.isArray(data.presentations)) {
-          for (const p of data.presentations) {
-            const slug = `custom-${p.presentation_id}`;
-            map[slug] = {
-              lastUpdatedAt: p.last_updated_at ? new Date(p.last_updated_at).getTime() : 0,
-              name: p.template?.name,
-              description: p.template?.description,
-            };
-          }
-        }
-        setSummaryMap(map);
-      })
-      .catch(() => setSummaryMap({}));
-  }, []);
-
-  // Transform context data to match expected format
-  const layoutTemplates = getAllTemplateIDs().map((templateID) => ({
-    templateID,
-    layouts: getLayoutsByTemplateID(templateID),
-    settings: getTemplateSetting(templateID) || { description: "", ordered: false },
-  }));
-  const inBuiltTemplates = layoutTemplates.filter(
-    (g) => !g.templateID.toLowerCase().startsWith("custom-")
-  );
-  const customTemplates = layoutTemplates.filter((g) =>
-    g.templateID.toLowerCase().startsWith("custom-")
-  );
-
-  // Sort custom templates by last_updated_at desc using summaryMap
-  const customTemplatesSorted = [...customTemplates].sort(
-    (a, b) => (summaryMap[b.templateID]?.lastUpdatedAt || 0) - (summaryMap[a.templateID]?.lastUpdatedAt || 0)
-  );
-
-  // Handle loading state
-  if (loading) {
-    return <LoadingStates type="loading" />;
-  }
-
-  // Handle error state
-  if (error) {
-    return <LoadingStates type="error" message={error} />;
-  }
-
-  // Handle empty state
-  if (!loading && layoutTemplates.length === 0) {
-    return <LoadingStates type="empty" />;
-  }
+  const totalStaticLayouts = templates.reduce((acc: number, g: TemplateLayoutsWithSettings) => acc + g.layouts.length, 0);
+  const totalCustomLayouts = customTemplates.reduce((acc: number, t: CustomTemplates) => acc + t.layoutCount, 0);
 
   return (
     <div className="min-h-screen bg-gray-50">

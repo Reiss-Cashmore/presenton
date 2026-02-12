@@ -50,6 +50,12 @@ export function ConfigurationInitializer({ children }: { children: React.ReactNo
     }
     dispatch(setCanChangeKeys(canChangeKeys));
 
+    // Allow access to pdf-maker without configuration check (needed for PPTX export)
+    if (route.startsWith('/pdf-maker')) {
+      setIsLoading(false);
+      return;
+    }
+
     if (canChangeKeys) {
       let llmConfig: LLMConfig = {};
       if (typeof window !== 'undefined' && (window as any).electron) {
@@ -68,9 +74,16 @@ export function ConfigurationInitializer({ children }: { children: React.ReactNo
       }
       dispatch(setLLMConfig(llmConfig));
       const isValid = hasValidLLMConfig(llmConfig);
+      
+      // Allow access to pdf-maker without LLM configuration (needed for PPTX export)
+      if (route.startsWith('/pdf-maker')) {
+        setIsLoading(false);
+        return;
+      }
+      
       if (isValid) {
         // Check if the selected Ollama model is pulled
-        if (llmConfig.LLM === 'ollama') {
+        if (llmConfig.LLM === 'ollama' && llmConfig.OLLAMA_MODEL) {
           const isPulled = await checkIfSelectedOllamaModelIsPulled(llmConfig.OLLAMA_MODEL);
           if (!isPulled) {
             router.push('/');

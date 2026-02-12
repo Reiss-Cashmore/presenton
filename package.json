@@ -15,13 +15,14 @@
     "build:ts": "rm -rf app_dist && tsc",
     "build:css": "tailwindcss -i ./resources/ui/assets/css/tailwind.import.css -o ./resources/ui/assets/css/tailwind.css --watch",
     "build:vectorstore": "cd servers/fastapi && uv run python build_vectorstore.py",
-    "build:nextjs": "rm -rf resources/nextjs && cd servers/nextjs && BUILD_TARGET=electron npm run build && cp -r .next-build ../../resources/nextjs && cp -r presentation-templates ../../resources/nextjs/presentation-templates",
-    "build:fastapi": "rm -rf resources/fastapi && npm run build:vectorstore && cd servers/fastapi && uv run pyinstaller --distpath ../../resources server.spec",
+    "build:nextjs": "rm -rf resources/nextjs && cd servers/nextjs && cross-env BUILD_TARGET=electron npm run build && cp -r .next-build ../../resources/nextjs && cp -r app/presentation-templates ../../resources/nextjs/presentation-templates",
+    "build:fastapi": "rm -rf resources/fastapi && npm run build:vectorstore && cd servers/fastapi && uv run python -m PyInstaller --distpath ../../resources server.spec",
     "build:electron": "rm -rf app_dist && tsc && node build.js",
     "build:all": "npm run clean:build && npm run setup:env && npm run build:ts && npm run install:pyinstaller && npm run build:nextjs && npm run build:fastapi && npm run build:electron",
     "clean:build": "rm -rf resources/nextjs && rm -rf resources/fastapi && rm -rf app_dist"
   },
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "electron": "^36.1.0",
     "electron-builder": "^26.0.12",
     "typescript": "^5.8.3"

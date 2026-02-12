@@ -233,6 +233,20 @@ class PptxPresentationCreator:
     def add_picture(self, slide: Slide, picture_model: PptxPictureBoxModel):
         image_path = picture_model.picture.path
         
+        # Handle HTTP URLs that point to local files (from Next.js server)
+        # Example: http://127.0.0.1:40002/home/user/.config/presenton/images/file.png
+        # Should become: /home/user/.config/presenton/images/file.png
+        if image_path.startswith('http://') or image_path.startswith('https://'):
+            # Extract the path after the domain
+            # Format: http://domain:port/actual/file/path
+            parts = image_path.split('/', 3)  # ['http:', '', 'domain:port', 'actual/file/path']
+            if len(parts) >= 4:
+                # Get the part after the domain
+                potential_path = '/' + parts[3]
+                # Check if it's an absolute file path
+                if os.path.isabs(potential_path) and os.path.exists(potential_path):
+                    image_path = potential_path
+        
         print(f"[PPTX] Adding picture: {image_path}")
         print(f"[PPTX] File exists: {os.path.exists(image_path)}")
         

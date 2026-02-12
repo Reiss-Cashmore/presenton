@@ -14,17 +14,21 @@ export async function startFastApiServer(
   isDev: boolean,
 ) {
   // Start FastAPI server
-  const startCommand = isDev ? [
-    "uv",
-    ["run", "python", "server.py", "--port", port.toString(), "--reload", "true"],
-  ] : [
-    "./fastapi", ["--port", port.toString()],
-  ];
+  let command: string;
+  let args: string[];
 
+  if (isDev) {
+    command = "uv";
+    args = ["run", "python", "server.py", "--port", port.toString(), "--reload", "true"];
+  } else {
+    const binary = process.platform === "win32" ? "fastapi.exe" : "fastapi";
+    command = path.join(directory, binary);
+    args = ["--port", port.toString()];
+  }
 
   const fastApiProcess = spawn(
-    startCommand[0] as string,
-    startCommand[1] as string[],
+    command,
+    args,
     {
       cwd: directory,
       stdio: ["inherit", "pipe", "pipe"],
