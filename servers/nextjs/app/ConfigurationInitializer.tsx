@@ -33,16 +33,36 @@ export function ConfigurationInitializer({ children }: { children: React.ReactNo
   const fetchUserConfigState = async () => {
     setIsLoading(true);
     
-    // Use Electron IPC directly instead of API routes (which don't work in production)
-    const canChangeKeys = typeof window !== 'undefined' && (window as any).electron 
-      ? await (window as any).electron.getCanChangeKeys()
-      : false;
+    let canChangeKeys = false;
+    if (typeof window !== 'undefined' && (window as any).electron) {
+      // Electron mode: use IPC
+      canChangeKeys = await (window as any).electron.getCanChangeKeys();
+    } else {
+      // Docker / web mode: use Next.js API route
+      try {
+        const res = await fetch('/api/can-change-keys');
+        const data = await res.json();
+        canChangeKeys = data.canChange ?? false;
+      } catch (e) {
+        console.error('Failed to fetch can-change-keys:', e);
+        canChangeKeys = false;
+      }
+    }
     dispatch(setCanChangeKeys(canChangeKeys));
 
     if (canChangeKeys) {
-      const llmConfig = typeof window !== 'undefined' && (window as any).electron 
-        ? await (window as any).electron.getUserConfig()
-        : {};
+      let llmConfig: LLMConfig = {};
+      if (typeof window !== 'undefined' && (window as any).electron) {
+        llmConfig = await (window as any).electron.getUserConfig();
+      } else {
+        try {
+          const res = await fetch('/api/user-config');
+          llmConfig = await res.json();
+        } catch (e) {
+          console.error('Failed to fetch user config:', e);
+          llmConfig = {};
+        }
+      }
       if (!llmConfig.LLM) {
         llmConfig.LLM = 'openai';
       }

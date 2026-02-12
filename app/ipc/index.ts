@@ -9,6 +9,7 @@ import { setupLogHandler } from "./log_handler";
 import { setupApiHandlers } from "./api_handlers";
 import { setupTemplateHandlers } from "./template_api_handlers";
 import { setupPresentationToPptxModelHandlers } from "./presentation_to_pptx_model_handlers";
+import { setupChatGPTAuthHandlers } from "./chatgpt_auth_handlers";
 
 export function setupIpcHandlers() {
   setupExportHandlers();
@@ -22,4 +23,5 @@ export function setupIpcHandlers() {
   setupApiHandlers();
   setupTemplateHandlers();
   setupPresentationToPptxModelHandlers();
+  setupChatGPTAuthHandlers();
 }

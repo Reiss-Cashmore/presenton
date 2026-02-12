@@ -29,7 +29,7 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 # Install dependencies for FastAPI
 RUN pip install aiohttp aiomysql aiosqlite asyncpg fastapi[standard] \
   pathvalidate pdfplumber sqlmodel fastembed-vectorstore \
-  anthropic google-genai openai fastmcp dirtyjson
+  anthropic google-genai openai fastmcp dirtyjson requests
 RUN pip install docling --extra-index-url https://download.pytorch.org/whl/cpu
 
 # Copy nginx configuration

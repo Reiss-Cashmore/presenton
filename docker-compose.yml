@@ -80,6 +80,7 @@ services:
       dockerfile: Dockerfile.dev
     ports:
       - "5000:80"
+      - "1455:1455"
     volumes:
       - .:/app
       - ./app_data:/app_data

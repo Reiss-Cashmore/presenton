@@ -67,6 +67,14 @@ export const hasValidLLMConfig = (llmConfig: LLMConfig) => {
     llmConfig.CUSTOM_MODEL !== null &&
     llmConfig.CUSTOM_MODEL !== undefined;
 
+  const isChatGPTConfigValid =
+    llmConfig.CHATGPT_ACCESS_TOKEN !== "" &&
+    llmConfig.CHATGPT_ACCESS_TOKEN !== null &&
+    llmConfig.CHATGPT_ACCESS_TOKEN !== undefined &&
+    llmConfig.CHATGPT_MODEL !== "" &&
+    llmConfig.CHATGPT_MODEL !== null &&
+    llmConfig.CHATGPT_MODEL !== undefined;
+
   const shouldValidateImages = !llmConfig.DISABLE_IMAGE_GENERATION;
 
   const isImageConfigValid = () => {
@@ -104,6 +112,8 @@ export const hasValidLLMConfig = (llmConfig: LLMConfig) => {
       ? isOllamaConfigValid
       : llmConfig.LLM === "custom"
       ? isCustomConfigValid
+      : llmConfig.LLM === "openai-chatgpt"
+      ? isChatGPTConfigValid
       : false;
 
   return isLLMConfigValid && isImageConfigValid();

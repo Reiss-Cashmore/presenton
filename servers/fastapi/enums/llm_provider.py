@@ -7,3 +7,4 @@ class LLMProvider(Enum):
     GOOGLE = "google"
     ANTHROPIC = "anthropic"
     CUSTOM = "custom"
+    OPENAI_CHATGPT = "openai-chatgpt"

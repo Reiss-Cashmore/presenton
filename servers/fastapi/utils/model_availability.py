@@ -28,7 +28,9 @@ from utils.llm_provider import (
     get_llm_provider,
     is_custom_llm_selected,
     is_ollama_selected,
+    is_openai_chatgpt_selected,
 )
+from utils.get_env import get_chatgpt_access_token_env, get_chatgpt_model_env
 from utils.ollama import pull_ollama_model
 from utils.image_provider import (
     get_selected_image_provider,
@@ -109,6 +111,14 @@ async def check_llm_and_image_provider_api_or_model_availability():
             if custom_model not in available_models:
                 raise Exception(f"Model {custom_model} is not available")
 
+        elif is_openai_chatgpt_selected():
+            chatgpt_access_token = get_chatgpt_access_token_env()
+            if not chatgpt_access_token:
+                raise Exception("ChatGPT OAuth access token must be provided. Please login.")
+            chatgpt_model = get_chatgpt_model_env()
+            if not chatgpt_model:
+                raise Exception("CHATGPT_MODEL must be provided")
+
         # Skip image provider and API key checks if image generation is disabled
         if is_image_generation_disabled():
             return
@@ -141,8 +151,9 @@ async def check_llm_and_image_provider_api_or_model_availability():
             or selected_image_provider == ImageProvider.GPT_IMAGE_1_5
         ):
             openai_api_key = get_openai_api_key_env()
-            if not openai_api_key:
-                raise Exception("OPENAI_API_KEY must be provided")
+            chatgpt_token = get_chatgpt_access_token_env()
+            if not openai_api_key and not chatgpt_token:
+                raise Exception("OPENAI_API_KEY or ChatGPT OAuth login is required")
 
         elif selected_image_provider == ImageProvider.COMFYUI:
             comfyui_url = get_comfyui_url_env()

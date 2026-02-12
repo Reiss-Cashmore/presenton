@@ -38,6 +38,11 @@ export function setUserConfig(userConfig: UserConfig) {
     COMFYUI_WORKFLOW: userConfig.COMFYUI_WORKFLOW || existingConfig.COMFYUI_WORKFLOW,
     DALL_E_3_QUALITY: userConfig.DALL_E_3_QUALITY || existingConfig.DALL_E_3_QUALITY,
     GPT_IMAGE_1_5_QUALITY: userConfig.GPT_IMAGE_1_5_QUALITY || existingConfig.GPT_IMAGE_1_5_QUALITY,
+    CHATGPT_ACCESS_TOKEN: userConfig.CHATGPT_ACCESS_TOKEN || existingConfig.CHATGPT_ACCESS_TOKEN,
+    CHATGPT_REFRESH_TOKEN: userConfig.CHATGPT_REFRESH_TOKEN || existingConfig.CHATGPT_REFRESH_TOKEN,
+    CHATGPT_TOKEN_EXPIRES_AT: userConfig.CHATGPT_TOKEN_EXPIRES_AT || existingConfig.CHATGPT_TOKEN_EXPIRES_AT,
+    CHATGPT_ACCOUNT_ID: userConfig.CHATGPT_ACCOUNT_ID || existingConfig.CHATGPT_ACCOUNT_ID,
+    CHATGPT_MODEL: userConfig.CHATGPT_MODEL || existingConfig.CHATGPT_MODEL,
   }
   fs.writeFileSync(userConfigPath, JSON.stringify(mergedConfig))
 }

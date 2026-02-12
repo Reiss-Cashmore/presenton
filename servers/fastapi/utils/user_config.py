@@ -5,6 +5,11 @@ from models.user_config import UserConfig
 from utils.get_env import (
     get_anthropic_api_key_env,
     get_anthropic_model_env,
+    get_chatgpt_access_token_env,
+    get_chatgpt_account_id_env,
+    get_chatgpt_model_env,
+    get_chatgpt_refresh_token_env,
+    get_chatgpt_token_expires_at_env,
     get_comfyui_url_env,
     get_comfyui_workflow_env,
     get_custom_llm_api_key_env,
@@ -33,6 +38,11 @@ from utils.parsers import parse_bool_or_none
 from utils.set_env import (
     set_anthropic_api_key_env,
     set_anthropic_model_env,
+    set_chatgpt_access_token_env,
+    set_chatgpt_account_id_env,
+    set_chatgpt_model_env,
+    set_chatgpt_refresh_token_env,
+    set_chatgpt_token_expires_at_env,
     set_comfyui_url_env,
     set_comfyui_workflow_env,
     set_custom_llm_api_key_env,
@@ -98,6 +108,19 @@ def get_user_config():
         DALL_E_3_QUALITY=existing_config.DALL_E_3_QUALITY or get_dall_e_3_quality_env(),
         GPT_IMAGE_1_5_QUALITY=existing_config.GPT_IMAGE_1_5_QUALITY
         or get_gpt_image_1_5_quality_env(),
+        CHATGPT_ACCESS_TOKEN=existing_config.CHATGPT_ACCESS_TOKEN
+        or get_chatgpt_access_token_env(),
+        CHATGPT_REFRESH_TOKEN=existing_config.CHATGPT_REFRESH_TOKEN
+        or get_chatgpt_refresh_token_env(),
+        CHATGPT_TOKEN_EXPIRES_AT=(
+            existing_config.CHATGPT_TOKEN_EXPIRES_AT
+            if existing_config.CHATGPT_TOKEN_EXPIRES_AT is not None
+            else (float(get_chatgpt_token_expires_at_env()) if get_chatgpt_token_expires_at_env() else None)
+        ),
+        CHATGPT_ACCOUNT_ID=existing_config.CHATGPT_ACCOUNT_ID
+        or get_chatgpt_account_id_env(),
+        CHATGPT_MODEL=existing_config.CHATGPT_MODEL
+        or get_chatgpt_model_env(),
         TOOL_CALLS=(
             existing_config.TOOL_CALLS
             if existing_config.TOOL_CALLS is not None
@@ -163,6 +186,16 @@ def update_env_with_user_config():
         set_dall_e_3_quality_env(user_config.DALL_E_3_QUALITY)
     if user_config.GPT_IMAGE_1_5_QUALITY:
         set_gpt_image_1_5_quality_env(user_config.GPT_IMAGE_1_5_QUALITY)
+    if user_config.CHATGPT_ACCESS_TOKEN:
+        set_chatgpt_access_token_env(user_config.CHATGPT_ACCESS_TOKEN)
+    if user_config.CHATGPT_REFRESH_TOKEN:
+        set_chatgpt_refresh_token_env(user_config.CHATGPT_REFRESH_TOKEN)
+    if user_config.CHATGPT_TOKEN_EXPIRES_AT is not None:
+        set_chatgpt_token_expires_at_env(str(user_config.CHATGPT_TOKEN_EXPIRES_AT))
+    if user_config.CHATGPT_ACCOUNT_ID:
+        set_chatgpt_account_id_env(user_config.CHATGPT_ACCOUNT_ID)
+    if user_config.CHATGPT_MODEL:
+        set_chatgpt_model_env(user_config.CHATGPT_MODEL)
     if user_config.TOOL_CALLS is not None:
         set_tool_calls_env(str(user_config.TOOL_CALLS))
     if user_config.DISABLE_THINKING is not None:

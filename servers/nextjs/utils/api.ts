@@ -4,8 +4,19 @@ export function getFastAPIUrl(): string {
   if (typeof window !== 'undefined' && (window as any).env) {
     return (window as any).env.NEXT_PUBLIC_FAST_API || '';
   }
-  // Fallback for development
-  return process.env.NEXT_PUBLIC_FAST_API || 'http://127.0.0.1:8000';
+  
+  // Check if we're running in Electron vs Docker/web mode
+  if (typeof window !== 'undefined' && (window as any).electron) {
+    // Electron mode: direct access to FastAPI
+    return process.env.NEXT_PUBLIC_FAST_API || 'http://127.0.0.1:8000';
+  } else {
+    // Docker/web mode: use current origin (goes through nginx)
+    if (typeof window !== 'undefined') {
+      return window.location.origin;
+    }
+    // Server-side fallback
+    return process.env.NEXT_PUBLIC_FAST_API || 'http://127.0.0.1:8000';
+  }
 }
 
 // Utility to construct full API URL

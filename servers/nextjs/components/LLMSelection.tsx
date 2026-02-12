@@ -19,6 +19,7 @@ import GoogleConfig from "./GoogleConfig";
 import AnthropicConfig from "./AnthropicConfig";
 import OllamaConfig from "./OllamaConfig";
 import CustomConfig from "./CustomConfig";
+import ChatGPTConfig from "./ChatGPTConfig";
 import {
   updateLLMConfig,
   changeProvider as changeProviderUtil,
@@ -85,6 +86,11 @@ export default function LLMProviderSelection({
   const [openImageProviderSelect, setOpenImageProviderSelect] = useState(false);
   const isImageGenerationDisabled = llmConfig.DISABLE_IMAGE_GENERATION ?? false;
 
+  // Sync external config changes (e.g., from ChatGPT OAuth) back to local state
+  useEffect(() => {
+    setLlmConfig(initialLLMConfig);
+  }, [initialLLMConfig]);
+
   useEffect(() => {
     onConfigChange(llmConfig);
   }, [llmConfig]);
@@ -95,18 +101,25 @@ export default function LLMProviderSelection({
       (llmConfig.LLM === "google" && !llmConfig.GOOGLE_MODEL) ||
       (llmConfig.LLM === "ollama" && !llmConfig.OLLAMA_MODEL) ||
       (llmConfig.LLM === "custom" && !llmConfig.CUSTOM_MODEL) ||
-      (llmConfig.LLM === "anthropic" && !llmConfig.ANTHROPIC_MODEL);
+      (llmConfig.LLM === "anthropic" && !llmConfig.ANTHROPIC_MODEL) ||
+      (llmConfig.LLM === "openai-chatgpt" && !llmConfig.CHATGPT_MODEL);
 
     const needsProviderApiKey =
       (llmConfig.LLM === "openai" && !llmConfig.OPENAI_API_KEY) ||
       (llmConfig.LLM === "google" && !llmConfig.GOOGLE_API_KEY) ||
       (llmConfig.LLM === "anthropic" && !llmConfig.ANTHROPIC_API_KEY);
 
+    const needsChatGPTAuth =
+      llmConfig.LLM === "openai-chatgpt" && !llmConfig.CHATGPT_ACCESS_TOKEN;
+
     const needsImageProviderApiKey =
       !llmConfig.DISABLE_IMAGE_GENERATION &&
-      ((llmConfig.IMAGE_PROVIDER === "dall-e-3" && !llmConfig.OPENAI_API_KEY) ||
+      ((llmConfig.IMAGE_PROVIDER === "dall-e-3" &&
+        !llmConfig.OPENAI_API_KEY &&
+        llmConfig.LLM !== "openai-chatgpt") ||
         (llmConfig.IMAGE_PROVIDER === "gpt-image-1.5" &&
-          !llmConfig.OPENAI_API_KEY) ||
+          !llmConfig.OPENAI_API_KEY &&
+          llmConfig.LLM !== "openai-chatgpt") ||
         (llmConfig.IMAGE_PROVIDER === "gemini_flash" &&
           !llmConfig.GOOGLE_API_KEY) ||
         (llmConfig.IMAGE_PROVIDER === "nanobanana_pro" &&
@@ -129,8 +142,11 @@ export default function LLMProviderSelection({
         needsModelSelection ||
         needsApiKey ||
         needsOllamaUrl ||
-        needsComfyUIConfig,
-      text: needsModelSelection
+        needsComfyUIConfig ||
+        needsChatGPTAuth,
+      text: needsChatGPTAuth
+        ? "Please Login with ChatGPT"
+        : needsModelSelection
         ? "Please Select a Model"
         : needsApiKey
         ? "Please Enter API Key"
@@ -207,7 +223,7 @@ export default function LLMProviderSelection({
       const updates: Partial<LLMConfig> = {};
 
       if (!prevConfig.DISABLE_IMAGE_GENERATION && !prevConfig.IMAGE_PROVIDER) {
-        if (prevConfig.LLM === "openai") {
+        if (prevConfig.LLM === "openai" || prevConfig.LLM === "openai-chatgpt") {
           updates.IMAGE_PROVIDER = "gpt-image-1.5";
         } else if (prevConfig.LLM === "google") {
           updates.IMAGE_PROVIDER = "gemini_flash";
@@ -335,12 +351,13 @@ export default function LLMProviderSelection({
           onValueChange={handleProviderChange}
           className="w-full"
         >
-          <TabsList className="grid w-full grid-cols-5 bg-transparent h-10">
+          <TabsList className="grid w-full grid-cols-6 bg-transparent h-10">
             <TabsTrigger value="openai">OpenAI</TabsTrigger>
             <TabsTrigger value="google">Google</TabsTrigger>
             <TabsTrigger value="anthropic">Anthropic</TabsTrigger>
             <TabsTrigger value="ollama">Ollama</TabsTrigger>
             <TabsTrigger value="custom">Custom</TabsTrigger>
+            <TabsTrigger value="openai-chatgpt">ChatGPT</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -401,6 +418,19 @@ export default function LLMProviderSelection({
               customModel={llmConfig.CUSTOM_MODEL || ""}
               toolCalls={llmConfig.TOOL_CALLS || false}
               disableThinking={llmConfig.DISABLE_THINKING || false}
+              onInputChange={input_field_changed}
+            />
+          </TabsContent>
+
+          {/* ChatGPT OAuth Content */}
+          <TabsContent value="openai-chatgpt" className="mt-6">
+            <ChatGPTConfig
+              chatgptAccessToken={llmConfig.CHATGPT_ACCESS_TOKEN || ""}
+              chatgptRefreshToken={llmConfig.CHATGPT_REFRESH_TOKEN || ""}
+              chatgptAccountId={llmConfig.CHATGPT_ACCOUNT_ID || ""}
+              chatgptModel={llmConfig.CHATGPT_MODEL || ""}
+              chatgptTokenExpiresAt={llmConfig.CHATGPT_TOKEN_EXPIRES_AT}
+              webGrounding={llmConfig.WEB_GROUNDING || false}
               onInputChange={input_field_changed}
             />
           </TabsContent>
@@ -652,6 +682,8 @@ export default function LLMProviderSelection({
                   ? llmConfig.GOOGLE_MODEL ?? "xxxxx"
                   : llmConfig.LLM === "openai"
                   ? llmConfig.OPENAI_MODEL ?? "xxxxx"
+                  : llmConfig.LLM === "openai-chatgpt"
+                  ? llmConfig.CHATGPT_MODEL ?? "xxxxx"
                   : "xxxxx"}{" "}
                 for text generation{" "}
                 {isImageGenerationDisabled ? (

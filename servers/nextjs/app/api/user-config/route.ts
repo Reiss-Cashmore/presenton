@@ -91,6 +91,26 @@ export async function POST(request: Request) {
       userConfig.USE_CUSTOM_URL === undefined
         ? existingConfig.USE_CUSTOM_URL
         : userConfig.USE_CUSTOM_URL,
+    CHATGPT_ACCESS_TOKEN:
+      userConfig.CHATGPT_ACCESS_TOKEN !== undefined
+        ? userConfig.CHATGPT_ACCESS_TOKEN
+        : existingConfig.CHATGPT_ACCESS_TOKEN,
+    CHATGPT_REFRESH_TOKEN:
+      userConfig.CHATGPT_REFRESH_TOKEN !== undefined
+        ? userConfig.CHATGPT_REFRESH_TOKEN
+        : existingConfig.CHATGPT_REFRESH_TOKEN,
+    CHATGPT_TOKEN_EXPIRES_AT:
+      userConfig.CHATGPT_TOKEN_EXPIRES_AT !== undefined
+        ? userConfig.CHATGPT_TOKEN_EXPIRES_AT
+        : existingConfig.CHATGPT_TOKEN_EXPIRES_AT,
+    CHATGPT_ACCOUNT_ID:
+      userConfig.CHATGPT_ACCOUNT_ID !== undefined
+        ? userConfig.CHATGPT_ACCOUNT_ID
+        : existingConfig.CHATGPT_ACCOUNT_ID,
+    CHATGPT_MODEL:
+      userConfig.CHATGPT_MODEL !== undefined
+        ? userConfig.CHATGPT_MODEL
+        : existingConfig.CHATGPT_MODEL,
   };
   fs.writeFileSync(userConfigPath, JSON.stringify(mergedConfig));
   return NextResponse.json(mergedConfig);

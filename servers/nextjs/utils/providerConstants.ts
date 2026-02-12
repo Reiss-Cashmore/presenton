@@ -116,4 +116,9 @@ export const LLM_PROVIDERS: Record<string, LLMProviderOption> = {
     label: "Custom",
     description: "Custom LLM",
   },
+  "openai-chatgpt": {
+    value: "openai-chatgpt",
+    label: "ChatGPT (OAuth)",
+    description: "Use your ChatGPT subscription via OAuth — no API key needed",
+  },
 };

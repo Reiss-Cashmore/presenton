@@ -29,4 +29,8 @@ contextBridge.exposeInMainWorld('electron', {
   telemetryStatus: () => ipcRenderer.invoke("api:telemetry-status"),
   getTemplates: () => ipcRenderer.invoke("api:templates"),
   getPresentationPptxModel: (presentationId: string) => ipcRenderer.invoke("presentation-to-pptx-model", presentationId),
+  // ChatGPT OAuth handlers
+  chatgptOpenLogin: (authorizationUrl: string) => ipcRenderer.invoke("chatgpt-auth:open-login", authorizationUrl),
+  chatgptManualCallback: (redirectUrlOrCode: string) => ipcRenderer.invoke("chatgpt-auth:manual-callback", redirectUrlOrCode),
+  chatgptCancelAuth: () => ipcRenderer.invoke("chatgpt-auth:cancel"),
 });

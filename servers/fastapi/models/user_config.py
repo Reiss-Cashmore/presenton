@@ -41,6 +41,13 @@ class UserConfig(BaseModel):
     # Gpt Image 1.5 Quality
     GPT_IMAGE_1_5_QUALITY: Optional[str] = None
 
+    # ChatGPT OAuth
+    CHATGPT_ACCESS_TOKEN: Optional[str] = None
+    CHATGPT_REFRESH_TOKEN: Optional[str] = None
+    CHATGPT_TOKEN_EXPIRES_AT: Optional[float] = None
+    CHATGPT_ACCOUNT_ID: Optional[str] = None
+    CHATGPT_MODEL: Optional[str] = None
+
     # Reasoning
     TOOL_CALLS: Optional[bool] = None
     DISABLE_THINKING: Optional[bool] = None

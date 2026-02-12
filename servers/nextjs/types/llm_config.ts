@@ -37,6 +37,13 @@ export interface LLMConfig {
   // GPT Image 1.5 Quality
   GPT_IMAGE_1_5_QUALITY?: string;
 
+  // ChatGPT OAuth
+  CHATGPT_ACCESS_TOKEN?: string;
+  CHATGPT_REFRESH_TOKEN?: string;
+  CHATGPT_TOKEN_EXPIRES_AT?: number;
+  CHATGPT_ACCOUNT_ID?: string;
+  CHATGPT_MODEL?: string;
+
   // Other Configs
   TOOL_CALLS?: boolean;
   DISABLE_THINKING?: boolean;

@@ -27,6 +27,11 @@ interface FastApiEnv {
   COMFYUI_WORKFLOW?: string,
   DALL_E_3_QUALITY?: string,
   GPT_IMAGE_1_5_QUALITY?: string,
+  CHATGPT_ACCESS_TOKEN?: string,
+  CHATGPT_REFRESH_TOKEN?: string,
+  CHATGPT_TOKEN_EXPIRES_AT?: string,
+  CHATGPT_ACCOUNT_ID?: string,
+  CHATGPT_MODEL?: string,
   APP_DATA_DIRECTORY?: string,
   TEMP_DIRECTORY?: string,
   USER_CONFIG_PATH?: string,
@@ -69,6 +74,11 @@ interface UserConfig {
   COMFYUI_WORKFLOW?: string,
   DALL_E_3_QUALITY?: string,
   GPT_IMAGE_1_5_QUALITY?: string,
+  CHATGPT_ACCESS_TOKEN?: string,
+  CHATGPT_REFRESH_TOKEN?: string,
+  CHATGPT_TOKEN_EXPIRES_AT?: string,
+  CHATGPT_ACCOUNT_ID?: string,
+  CHATGPT_MODEL?: string,
 }
 
 interface IPCStatus {

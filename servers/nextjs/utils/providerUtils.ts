@@ -53,6 +53,11 @@ export const updateLLMConfig = (
     comfyui_workflow: "COMFYUI_WORKFLOW",
     dall_e_3_quality: "DALL_E_3_QUALITY",
     gpt_image_1_5_quality: "GPT_IMAGE_1_5_QUALITY",
+    chatgpt_access_token: "CHATGPT_ACCESS_TOKEN",
+    chatgpt_refresh_token: "CHATGPT_REFRESH_TOKEN",
+    chatgpt_token_expires_at: "CHATGPT_TOKEN_EXPIRES_AT",
+    chatgpt_account_id: "CHATGPT_ACCOUNT_ID",
+    chatgpt_model: "CHATGPT_MODEL",
   };
 
   const configKey = fieldMappings[field];
@@ -77,6 +82,8 @@ export const changeProvider = (
     newConfig.IMAGE_PROVIDER = "gpt-image-1.5";
   } else if (provider === "google") {
     newConfig.IMAGE_PROVIDER = "gemini_flash";
+  } else if (provider === "openai-chatgpt") {
+    newConfig.IMAGE_PROVIDER = "gpt-image-1.5";
   } else {
     newConfig.IMAGE_PROVIDER = "pexels"; // default for ollama and custom
   }

@@ -44,6 +44,8 @@ from utils.async_iterator import iterator_to_async
 from utils.dummy_functions import do_nothing_async
 from utils.get_env import (
     get_anthropic_api_key_env,
+    get_chatgpt_access_token_env,
+    get_chatgpt_account_id_env,
     get_custom_llm_api_key_env,
     get_custom_llm_url_env,
     get_disable_thinking_env,
@@ -100,10 +102,12 @@ class LLMClient:
                 return self._get_ollama_client()
             case LLMProvider.CUSTOM:
                 return self._get_custom_client()
+            case LLMProvider.OPENAI_CHATGPT:
+                return self._get_chatgpt_client()
             case _:
                 raise HTTPException(
                     status_code=400,
-                    detail="LLM Provider must be either openai, google, anthropic, ollama, or custom",
+                    detail="LLM Provider must be either openai, google, anthropic, ollama, custom, or openai-chatgpt",
                 )
 
     def _get_openai_client(self):
@@ -145,6 +149,24 @@ class LLMClient:
         return AsyncOpenAI(
             base_url=get_custom_llm_url_env(),
             api_key=get_custom_llm_api_key_env() or "null",
+        )
+
+    def _get_chatgpt_client(self):
+        """Create an OpenAI client pointed at the ChatGPT backend API using OAuth token."""
+        access_token = get_chatgpt_access_token_env()
+        if not access_token:
+            raise HTTPException(
+                status_code=400,
+                detail="ChatGPT OAuth access token is not set. Please login with ChatGPT OAuth first.",
+            )
+        account_id = get_chatgpt_account_id_env()
+        default_headers = {}
+        if account_id:
+            default_headers["ChatGPT-Account-Id"] = account_id
+        return AsyncOpenAI(
+            base_url="https://chatgpt.com/backend-api",
+            api_key=access_token,
+            default_headers=default_headers if default_headers else None,
         )
 
     # ? Prompts
@@ -440,6 +462,13 @@ class LLMClient:
             case LLMProvider.CUSTOM:
                 content = await self._generate_custom(
                     model=model, messages=messages, max_tokens=max_tokens
+                )
+            case LLMProvider.OPENAI_CHATGPT:
+                content = await self._generate_openai(
+                    model=model,
+                    messages=messages,
+                    max_tokens=max_tokens,
+                    tools=parsed_tools,
                 )
         if content is None:
             raise HTTPException(
@@ -827,6 +856,15 @@ class LLMClient:
                     strict=strict,
                     max_tokens=max_tokens,
                 )
+            case LLMProvider.OPENAI_CHATGPT:
+                content = await self._generate_openai_structured(
+                    model=model,
+                    messages=messages,
+                    response_format=response_format,
+                    strict=strict,
+                    tools=parsed_tools,
+                    max_tokens=max_tokens,
+                )
         if content is None:
             raise HTTPException(
                 status_code=400,
@@ -1133,6 +1171,13 @@ class LLMClient:
             case LLMProvider.CUSTOM:
                 return self._stream_custom(
                     model=model, messages=messages, max_tokens=max_tokens
+                )
+            case LLMProvider.OPENAI_CHATGPT:
+                return self._stream_openai(
+                    model=model,
+                    messages=messages,
+                    max_tokens=max_tokens,
+                    tools=parsed_tools,
                 )
 
     # ? Stream Structured Content
@@ -1568,6 +1613,15 @@ class LLMClient:
                     messages=messages,
                     response_format=response_format,
                     strict=strict,
+                    max_tokens=max_tokens,
+                )
+            case LLMProvider.OPENAI_CHATGPT:
+                return self._stream_openai_structured(
+                    model=model,
+                    messages=messages,
+                    response_format=response_format,
+                    strict=strict,
+                    tools=parsed_tools,
                     max_tokens=max_tokens,
                 )
 

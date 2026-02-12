@@ -143,6 +143,111 @@ const startServers = async () => {
     console.error("App MCP process failed to start:", err);
   });
 
+  // Start OAuth callback server for ChatGPT auth
+  const oauthCallbackProcess = spawn(
+    "python",
+    ["-c", `
+import http.server
+import socketserver
+import urllib.parse
+import json
+import requests
+from urllib.parse import parse_qs
+
+class OAuthCallbackHandler(http.server.BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path.startswith('/auth/callback'):
+            # Parse query parameters
+            parsed = urllib.parse.urlparse(self.path)
+            query_params = parse_qs(parsed.query)
+            
+            code = query_params.get('code', [None])[0]
+            state = query_params.get('state', [None])[0] 
+            error = query_params.get('error', [None])[0]
+            
+            if error:
+                self.send_response(400)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                self.wfile.write(f'''
+                <html>
+                    <body style="font-family: sans-serif; text-align: center; padding: 50px;">
+                        <h1 style="color: #e74c3c;">Authentication Failed</h1>
+                        <p>Error: {error}</p>
+                        <p>You can close this window and try again.</p>
+                    </body>
+                </html>
+                '''.encode())
+                return
+            
+            if code:
+                # Forward to FastAPI callback endpoint
+                try:
+                    response = requests.post('http://127.0.0.1:8000/api/v1/ppt/chatgpt-auth/callback', 
+                                           json={'code': code, 'state': state})
+                    
+                    if response.status_code == 200:
+                        self.send_response(200)
+                        self.send_header('Content-type', 'text/html')
+                        self.end_headers()
+                        self.wfile.write('''
+                        <html>
+                            <body style="font-family: sans-serif; text-align: center; padding: 50px;">
+                                <h1 style="color: #27ae60;">✓ Authentication Successful</h1>
+                                <p>ChatGPT login completed! You can close this window and return to Presenton.</p>
+                                <script>setTimeout(() => window.close(), 2000);</script>
+                            </body>
+                        </html>
+                        '''.encode())
+                    else:
+                        raise Exception(f"FastAPI error: {response.status_code}")
+                        
+                except Exception as e:
+                    self.send_response(500)
+                    self.send_header('Content-type', 'text/html') 
+                    self.end_headers()
+                    self.wfile.write(f'''
+                    <html>
+                        <body style="font-family: sans-serif; text-align: center; padding: 50px;">
+                            <h1 style="color: #e74c3c;">Authentication Error</h1>
+                            <p>Failed to complete login: {e}</p>
+                            <p>Please try again.</p>
+                        </body>
+                    </html>
+                    '''.encode())
+            else:
+                self.send_response(400)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                self.wfile.write('''
+                <html>
+                    <body style="font-family: sans-serif; text-align: center; padding: 50px;">
+                        <h1>Missing authorization code</h1>
+                        <p>Please try again.</p>
+                    </body>
+                </html>
+                '''.encode())
+        else:
+            self.send_response(404)
+            self.end_headers()
+    
+    def log_message(self, format, *args):
+        return  # Suppress logs
+
+with socketserver.TCPServer(("", 1455), OAuthCallbackHandler) as httpd:
+    print("OAuth callback server listening on port 1455")
+    httpd.serve_forever()
+`],
+    {
+      stdio: "inherit",
+      env: process.env,
+    }
+  );
+
+  oauthCallbackProcess.on("error", (err) => {
+    console.error("OAuth callback server failed to start:", err);
+  });
+
   const nextjsProcess = spawn(
     "npm",
     [
@@ -175,10 +280,11 @@ const startServers = async () => {
     console.error("Ollama process failed to start:", err);
   });
 
-  // Keep the Node process alive until both servers exit
+  // Keep the Node process alive until any server exits
   const exitCode = await Promise.race([
     new Promise((resolve) => fastApiProcess.on("exit", resolve)),
     new Promise((resolve) => nextjsProcess.on("exit", resolve)),
+    new Promise((resolve) => oauthCallbackProcess.on("exit", resolve)),
     new Promise((resolve) => ollamaProcess.on("exit", resolve)),
   ]);
 

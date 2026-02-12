@@ -117,3 +117,24 @@ def get_dall_e_3_quality_env():
 # Gpt Image 1.5 Quality
 def get_gpt_image_1_5_quality_env():
     return os.getenv("GPT_IMAGE_1_5_QUALITY")
+
+
+# ChatGPT OAuth
+def get_chatgpt_access_token_env():
+    return os.getenv("CHATGPT_ACCESS_TOKEN")
+
+
+def get_chatgpt_refresh_token_env():
+    return os.getenv("CHATGPT_REFRESH_TOKEN")
+
+
+def get_chatgpt_account_id_env():
+    return os.getenv("CHATGPT_ACCOUNT_ID")
+
+
+def get_chatgpt_model_env():
+    return os.getenv("CHATGPT_MODEL")
+
+
+def get_chatgpt_token_expires_at_env():
+    return os.getenv("CHATGPT_TOKEN_EXPIRES_AT")

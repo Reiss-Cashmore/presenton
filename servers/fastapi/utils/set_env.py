@@ -103,3 +103,24 @@ def set_dall_e_3_quality_env(value):
 
 def set_gpt_image_1_5_quality_env(value):
     os.environ["GPT_IMAGE_1_5_QUALITY"] = value
+
+
+# ChatGPT OAuth
+def set_chatgpt_access_token_env(value):
+    os.environ["CHATGPT_ACCESS_TOKEN"] = value
+
+
+def set_chatgpt_refresh_token_env(value):
+    os.environ["CHATGPT_REFRESH_TOKEN"] = value
+
+
+def set_chatgpt_account_id_env(value):
+    os.environ["CHATGPT_ACCOUNT_ID"] = value
+
+
+def set_chatgpt_model_env(value):
+    os.environ["CHATGPT_MODEL"] = value
+
+
+def set_chatgpt_token_expires_at_env(value):
+    os.environ["CHATGPT_TOKEN_EXPIRES_AT"] = value
