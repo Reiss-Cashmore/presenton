@@ -4,10 +4,14 @@ Pre-build the icons vectorstore for distribution.
 This script should be run before packaging the application to ensure
 the vectorstore is included in the bundle, eliminating first-run delays.
 """
-
 import json
 import os
-from fastembed_vectorstore import FastembedEmbeddingModel, FastembedVectorstore
+
+# Windows: resolve ORT_DYLIB_PATH before fastembed_vectorstore is imported
+import utils.onnx_windows_bootstrap  # noqa: F401
+
+from fastembed_vectorstore import FastembedVectorstore
+from utils.embedding_config import get_embedding_model
 
 
 def build_vectorstore():
@@ -41,8 +45,8 @@ def build_vectorstore():
         
         print(f"Loaded {len(icons.get('icons', []))} icons from JSON")
         
-        # Create vectorstore
-        model = FastembedEmbeddingModel.AllMiniLML6V2
+        # Windows: BGESmallENV15 (AllMiniLML6V2 can fail there); macOS/Linux: AllMiniLML6V2
+        model = get_embedding_model()
         vectorstore = FastembedVectorstore(model, cache_directory=cache_dir)
         
         # Prepare documents
@@ -69,7 +73,7 @@ def build_vectorstore():
             if os.path.exists(vectorstore_path):
                 file_size = os.path.getsize(vectorstore_path)
                 print(f"Vectorstore file size: {file_size / 1024:.2f} KB")
-                print("✓ Vectorstore built successfully!")
+                print("Vectorstore built successfully!")
                 return True
             else:
                 print("ERROR: Vectorstore file was not created")
