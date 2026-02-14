@@ -54,7 +54,7 @@ const config = {
   win: {
     artifactName: "Presenton-${version}.${ext}",
     target: ["appx"],
-    icon: "resources/ui/assets/images/presenton.ico",
+    icon: "build/icon.ico",
     requestedExecutionLevel: "asInvoker",
     // Skip rcedit (set exe metadata) to avoid "Unable to commit changes" when exe is locked (e.g. OneDrive)
     signAndEditExecutable: false,
