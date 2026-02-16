@@ -42,6 +42,9 @@ const config = {
     "!resources/fastapi/_internal/mammoth/**",
     "!resources/fastapi/_internal/mammoth-*.dist-info/**",
     "!resources/fastapi/_internal/fastembed_cache/**",
+    // Fix: Exclude test file with spaces in filename (Lorem ipsum.txt)
+    "!resources/fastapi/_internal/**/Lorem ipsum.txt",
+    "!resources/fastapi/_internal/**/*Lorem ipsum*",
   ],
   afterPack,
   mac: {
@@ -56,12 +59,14 @@ const config = {
     icon: "resources/ui/assets/images/presenton_short_filled.png",
   },
   win: {
-    artifactName: "Presenton-${version}.${ext}",
+    // artifactName: "Presenton-${version}.${ext}",
     target: ["appx"],
     icon: "build/icon.ico",
-    requestedExecutionLevel: "asInvoker",
+    // requestedExecutionLevel: "asInvoker",
     // Skip rcedit (set exe metadata) to avoid "Unable to commit changes" when exe is locked (e.g. OneDrive)
-    signAndEditExecutable: false,
+    // signAndEditExecutable: false,
+    // Fix: Use executable name without spaces to avoid MakeAppx path issues
+    executableName: "Presenton",
   },
   appx: {
     identityName: "PresentonAI.Presenton",
