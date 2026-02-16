@@ -32,7 +32,7 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    excludes=['docling', 'docling-core', 'docling-ibm-models', 'docling-parse'],
     noarchive=False,
     optimize=0,
 )
