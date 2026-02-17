@@ -54,6 +54,9 @@ const config = {
   win: {
     target: ["appx"],
     icon: "build/icon.ico",
+    artifactName: "Presenton-${version}.${ext}",
+    executableName: "Presenton",
+    productName: "Presenton",
   },
   appx: {
     identityName: "PresentonAI.Presenton",

@@ -1,11 +1,11 @@
 """
 Lightweight document converter for Windows/MSIX compatibility.
-Uses pure-Python libraries: PyMuPDF (fitz) for PDF, python-docx for DOCX, python-pptx for PPTX.
+Uses pure-Python libraries: pdfplumber for PDF, python-docx for DOCX, python-pptx for PPTX.
 No subprocess, no external runtimes, MSIX/Appx safe.
 """
 import os
-from typing import Optional
-import fitz  # PyMuPDF
+from typing import List, Optional
+import pdfplumber
 from docx import Document as DocxDocument
 from pptx import Presentation
 
@@ -43,7 +43,7 @@ class LightweightDocumentConverter:
     
     def _convert_pdf(self, path: str) -> str:
         """
-        Convert PDF to markdown using PyMuPDF.
+        Convert PDF to markdown using pdfplumber.
         
         Args:
             path: Path to PDF file
@@ -51,31 +51,13 @@ class LightweightDocumentConverter:
         Returns:
             Extracted text in markdown format
         """
-        doc = fitz.open(path)
-        markdown_parts = []
-        
-        for page_num, page in enumerate(doc, start=1):
-            # Extract text blocks for better structure preservation
-            blocks = page.get_text("blocks")
-            
-            page_text_parts = []
-            for block in blocks:
-                # block format: (x0, y0, x1, y1, "text", block_type, block_no)
-                if len(block) >= 5:
-                    text = block[4].strip()
-                    if text:
-                        page_text_parts.append(text)
-            
-            if page_text_parts:
-                page_content = "\n\n".join(page_text_parts)
-                # Add page separator for multi-page documents
-                if len(doc) > 1:
-                    markdown_parts.append(f"## Page {page_num}\n\n{page_content}")
-                else:
-                    markdown_parts.append(page_content)
-        
-        doc.close()
-        return "\n\n".join(markdown_parts)
+        texts: List[str] = []
+        with pdfplumber.open(path) as pdf:
+            for idx, page in enumerate(pdf.pages):
+                page_text = f"## Page {idx + 1}\n"
+                page_text += page.extract_text()
+                texts.append(page_text)
+        return "\n\n".join(texts)
     
     def _convert_docx(self, path: str) -> str:
         """
