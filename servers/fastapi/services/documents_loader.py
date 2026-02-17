@@ -1,4 +1,5 @@
 import mimetypes
+import sys
 from fastapi import HTTPException
 import os, asyncio
 from typing import List, Optional, Tuple
@@ -10,7 +11,15 @@ from constants.documents import (
     TEXT_MIME_TYPES,
     WORD_TYPES,
 )
-# from services.docling_service import DoclingService
+
+# Platform-specific document service imports
+is_windows = sys.platform == 'win32'
+if not is_windows:
+    from services.docling_service import DoclingService
+    DocumentService = None
+else:
+    DoclingService = None
+    from services.lightweight_document_service import DocumentService
 
 
 class DocumentsLoader:
@@ -18,7 +27,19 @@ class DocumentsLoader:
     def __init__(self, file_paths: List[str]):
         self._file_paths = file_paths
 
-        # self.docling_service = DoclingService()
+        # Initialize document service based on platform
+        if not is_windows and DoclingService is not None:
+            # Use DoclingService on Linux/macOS
+            self.docling_service = DoclingService()
+            self.document_service = None
+        elif is_windows and DocumentService is not None:
+            # Use lightweight DocumentService on Windows
+            self.docling_service = None
+            self.document_service = DocumentService()
+        else:
+            # Fallback if neither is available
+            self.docling_service = None
+            self.document_service = None
 
         self._documents: List[str] = []
         self._images: List[List[str]] = []
@@ -80,8 +101,12 @@ class DocumentsLoader:
         document: str = ""
 
         if load_text:
-            # document = self.docling_service.parse_to_markdown(file_path)
-            document = ""  # Docling disabled
+            if self.docling_service is not None:
+                document = self.docling_service.parse_to_markdown(file_path)
+            elif self.document_service is not None:
+                document = self.document_service.parse_to_markdown(file_path)
+            else:
+                document = ""  # Document service not available
 
         if load_images:
             image_paths = await self.get_page_images_from_pdf_async(file_path, temp_dir)
@@ -93,12 +118,18 @@ class DocumentsLoader:
             return await asyncio.to_thread(file.read)
 
     def load_msword(self, file_path: str) -> str:
-        # return self.docling_service.parse_to_markdown(file_path)
-        return ""  # Docling disabled
+        if self.docling_service is not None:
+            return self.docling_service.parse_to_markdown(file_path)
+        elif self.document_service is not None:
+            return self.document_service.parse_to_markdown(file_path)
+        return ""  # Document service not available
 
     def load_powerpoint(self, file_path: str) -> str:
-        # return self.docling_service.parse_to_markdown(file_path)
-        return ""  # Docling disabled
+        if self.docling_service is not None:
+            return self.docling_service.parse_to_markdown(file_path)
+        elif self.document_service is not None:
+            return self.document_service.parse_to_markdown(file_path)
+        return ""  # Document service not available
 
     @classmethod
     def get_page_images_from_pdf(cls, file_path: str, temp_dir: str) -> List[str]:

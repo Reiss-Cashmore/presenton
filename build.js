@@ -52,14 +52,8 @@ const config = {
     icon: "resources/ui/assets/images/presenton_short_filled.png",
   },
   win: {
-    // artifactName: "Presenton-${version}.${ext}",
     target: ["appx"],
     icon: "build/icon.ico",
-    // requestedExecutionLevel: "asInvoker",
-    // Skip rcedit (set exe metadata) to avoid "Unable to commit changes" when exe is locked (e.g. OneDrive)
-    // signAndEditExecutable: false,
-    // Fix: Use executable name without spaces to avoid MakeAppx path issues
-    executableName: "Presenton",
   },
   appx: {
     identityName: "PresentonAI.Presenton",
