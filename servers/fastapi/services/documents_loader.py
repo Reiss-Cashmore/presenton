@@ -3,8 +3,8 @@ import sys
 from fastapi import HTTPException
 import os, asyncio
 from typing import List, Optional, Tuple
-import pdfplumber
 
+import pdfplumber
 from constants.documents import (
     PDF_MIME_TYPES,
     POWERPOINT_TYPES,
@@ -117,7 +117,7 @@ class DocumentsLoader:
         with pdfplumber.open(file_path) as pdf:
             for idx, page in enumerate(pdf.pages):
                 page_text = f"## Page {idx + 1}\n"
-                page_text += page.extract_text()
+                page_text += page.extract_text() or ""
                 texts.append(page_text)
         return "\n\n".join(texts)
 

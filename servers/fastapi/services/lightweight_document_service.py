@@ -1,12 +1,13 @@
 """
 Lightweight document converter for Windows/MSIX compatibility.
-Uses pure-Python libraries: pdfplumber for PDF, python-docx for DOCX, python-pptx for PPTX.
+Uses pure-Python libraries: pdfplumber for PDF, docx2txt for DOCX, python-pptx for PPTX.
 No subprocess, no external runtimes, MSIX/Appx safe.
 """
 import os
 from typing import List, Optional
+
+import docx2txt
 import pdfplumber
-from docx import Document as DocxDocument
 from pptx import Presentation
 
 
@@ -44,10 +45,10 @@ class LightweightDocumentConverter:
     def _convert_pdf(self, path: str) -> str:
         """
         Convert PDF to markdown using pdfplumber.
-        
+
         Args:
             path: Path to PDF file
-            
+
         Returns:
             Extracted text in markdown format
         """
@@ -55,44 +56,22 @@ class LightweightDocumentConverter:
         with pdfplumber.open(path) as pdf:
             for idx, page in enumerate(pdf.pages):
                 page_text = f"## Page {idx + 1}\n"
-                page_text += page.extract_text()
+                page_text += page.extract_text() or ""
                 texts.append(page_text)
         return "\n\n".join(texts)
     
     def _convert_docx(self, path: str) -> str:
         """
-        Convert DOCX to markdown using python-docx.
-        
+        Extract text from DOCX using docx2txt (pure Python; supports links, headers, footers).
+
         Args:
             path: Path to DOCX file
-            
+
         Returns:
-            Extracted text in markdown format
+            Extracted text (plain text, newlines preserved)
         """
-        doc = DocxDocument(path)
-        markdown_parts = []
-        
-        for paragraph in doc.paragraphs:
-            text = paragraph.text.strip()
-            if not text:
-                continue
-            
-            # Check if it's a heading based on style
-            style_name = paragraph.style.name.lower()
-            
-            if 'heading' in style_name:
-                # Extract heading level from style (e.g., "Heading 1" -> 1)
-                try:
-                    level = int(style_name.split()[-1])
-                    level = min(level, 6)  # Markdown supports up to 6 levels
-                    markdown_parts.append(f"{'#' * level} {text}")
-                except (ValueError, IndexError):
-                    # Fallback: treat as regular paragraph
-                    markdown_parts.append(text)
-            else:
-                markdown_parts.append(text)
-        
-        return "\n\n".join(markdown_parts)
+        result = docx2txt.process(path)
+        return result if result else ""
     
     def _convert_pptx(self, path: str) -> str:
         """
