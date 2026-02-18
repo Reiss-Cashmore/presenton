@@ -122,7 +122,7 @@ class DocumentsLoader:
         return "\n\n".join(texts)
 
     async def load_text(self, file_path: str) -> str:
-        with open(file_path, "r") as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             return await asyncio.to_thread(file.read)
 
     def load_msword(self, file_path: str) -> str:
