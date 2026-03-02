@@ -87,7 +87,7 @@ export default function ExampleSlideLayout({ data }: { data: SchemaType }) {
                     />
                   )}
                 </div>
-                <span className="text-2xl font-bold text-blue-600">
+                <span className="text-2xl font-bold text-evri-blue">
                   {metric.value}
                 </span>
               </div>

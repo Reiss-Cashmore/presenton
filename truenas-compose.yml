@@ -1,0 +1,55 @@
+# Presenton — TrueNAS Electric Eel (24.10+) Custom App
+# Paste this into: Apps > Discover Apps > Custom App > Docker Compose
+#
+# ── Image ──────────────────────────────────────────────────────────────
+#
+# The image is built and pushed automatically by GitHub Actions on every
+# push to main (see .github/workflows/publish-image.yml).
+#
+# To deploy: paste this file into TrueNAS Custom App, or click "Update"
+# to pull the latest image.
+#
+# Tip: Make the ghcr.io package public so TrueNAS can pull without auth:
+#   github.com > Your profile > Packages > presenton > Package settings > Make public
+#
+# ── Configuration ──────────────────────────────────────────────────────
+# Replace every <placeholder> value below with your actual configuration.
+# Lines marked REQUIRED must be filled in; OPTIONAL lines can be left as-is
+# or removed.
+
+services:
+  presenton:
+    image: ghcr.io/reiss-cashmore/presenton:latest
+    container_name: presenton
+    restart: unless-stopped
+
+    ports:
+      # Host port 9100 mapped to container port 80.
+      # Change the left side if 9100 is already in use on your TrueNAS box.
+      - "9100:80"
+
+    volumes:
+      # Persistent data volume — point this at a TrueNAS dataset.
+      # Example: /mnt/main-pool/apps/presenton/data:/app_data
+      - /mnt/Apps/presenton/data:/app_data
+
+    environment:
+      # ── LLM provider ──────────────────────────────────────────────
+      # Using OpenAI as the LLM provider.
+      LLM: openai
+
+      # REQUIRED — Your OpenAI API key (used for both LLM and DALL-E 3).
+      OPENAI_API_KEY: <your-openai-api-key>
+
+      # OPTIONAL — Override the default OpenAI model.
+      # OPENAI_MODEL: gpt-4o
+
+      # ── Image generation ──────────────────────────────────────────
+      IMAGE_PROVIDER: dall-e-3
+
+      # ── App settings ──────────────────────────────────────────────
+      # Allow changing API keys from the Presenton web UI.
+      CAN_CHANGE_KEYS: "true"
+
+      # Disable anonymous telemetry.
+      DISABLE_ANONYMOUS_TRACKING: "true"

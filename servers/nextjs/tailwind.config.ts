@@ -43,6 +43,11 @@ const config: Config = {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
+        evri: {
+          blue: "#007BC4",
+          turquoise: "#53EFEF",
+          navy: "#00014D",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -82,9 +87,7 @@ const config: Config = {
         "accordion-up": "accordion-up 0.2s ease-out",
       },
       fontFamily: {
-        syne: ["var(--font-syne)"],
-        unbounded: ["var(--font-unbounded)"],
-        inter: ["var(--font-inter)"],
+        poppins: ["var(--font-poppins)"],
       },
     },
   },

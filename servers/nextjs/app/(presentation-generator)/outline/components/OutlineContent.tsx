@@ -48,10 +48,10 @@ const OutlineContent: React.FC<OutlineContentProps> = ({
     const pathname = usePathname();
 
     return (
-        <div className="space-y-6 font-syne ">
+        <div className="space-y-6 font-poppins">
             {isLoading && (!outlines || outlines.length === 0) && (
                 <div className="flex items-center justify-center">
-                    <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 text-blue-600 px-2 py-0.5 text-xs">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-evri-blue/20 bg-evri-blue/5 text-evri-blue px-2 py-0.5 text-xs">
                         <Loader2 className="h-3 w-3 animate-spin" />
                         Thinking
                     </span>
@@ -62,15 +62,15 @@ const OutlineContent: React.FC<OutlineContentProps> = ({
                     Presentation Outline
                 </h5>
                 {isStreaming && (
-                    <div className="flex items-center text-sm text-blue-600">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                    <div className="flex items-center text-sm text-evri-blue">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-evri-blue mr-2"></div>
                         Generating outlines...
                     </div>
                 )}
             </div> */}
             {/* Skeleton loading state */}
             {isLoading && (
-                <div className="space-y-4 bg-white">
+                <div className="space-y-4">
                     {[...Array(6)].map((_, index) => (
                         <div key={index} className="animate-pulse">
                             <div className="flex items-start space-x-3 p-4 border rounded-lg bg-white">
@@ -91,30 +91,41 @@ const OutlineContent: React.FC<OutlineContentProps> = ({
             )}
 
             {/* Outlines content */}
-
             {outlines && outlines.length > 0 && (
-                <div className="bg-[#F9F8F8] min-h-[calc(100vh-16rem)] p-7 relative z-20  rounded-[20px] overflow-y-auto custom_scrollbar">
+                <div>
                     <DndContext
                         sensors={sensors}
                         collisionDetection={closestCenter}
                         onDragEnd={onDragEnd}
                     >
-                        <SortableContext
-                            items={outlines.map((_, index) => `slide-${index}`)}
+                        {isStreaming ? (
+
+                           outlines.map((item, index) => (
+                            <OutlineItem
+                                key={`slide-${index}`}
+                                index={index + 1}
+                                slideOutline={item}
+                                isStreaming={isStreaming}
+                                isActiveStreaming={activeSlideIndex === index}
+                                isStableStreaming={highestActiveIndex >= 0 && index < highestActiveIndex}
+                            />
+                        ))
+                        ) :
+                            <SortableContext
+                            items={outlines?.map((item, index) => ({ id: `slide-${index}` })) || []}
                             strategy={verticalListSortingStrategy}
                         >
-                            {outlines.map((item, index) => (
+                            {outlines?.map((item, index) => (
                                 <OutlineItem
                                     key={`slide-${index}`}
-                                    sortableId={`slide-${index}`}
                                     index={index + 1}
                                     slideOutline={item}
                                     isStreaming={isStreaming}
-                                    isActiveStreaming={activeSlideIndex === index}
-                                    isStableStreaming={highestActiveIndex >= 0 && index < highestActiveIndex}
+                                    isActiveStreaming={false}
+                                    isStableStreaming={false}
                                 />
                             ))}
-                        </SortableContext>
+                        </SortableContext>}
                     </DndContext>
 
                     <Button
@@ -124,7 +135,7 @@ const OutlineContent: React.FC<OutlineContentProps> = ({
                             onAddSlide();
                         }}
                         disabled={isLoading || isStreaming}
-                        className="w-full my-4 text-blue-600 border-blue-200"
+                        className="w-full my-4 text-evri-blue border-evri-blue/20"
                     >
                         + Add Slide
                     </Button>
@@ -142,7 +153,7 @@ const OutlineContent: React.FC<OutlineContentProps> = ({
                             trackEvent(MixpanelEvent.Outline_Add_Slide_Button_Clicked, { pathname });
                             onAddSlide();
                         }}
-                        className="text-blue-600 border-blue-200"
+                        className="text-evri-blue border-evri-blue/20"
                     >
                         + Add First Slide
                     </Button>

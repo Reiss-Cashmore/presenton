@@ -19,7 +19,7 @@ export const SlideActions: React.FC<SlideActionsProps> = ({
     <div className="flex items-center w-full justify-between gap-2">
       <div>
         {slide.processing ? (
-          <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+          <Loader2 className="w-6 h-6 text-evri-blue animate-spin" />
         ) : slide.processed ? (
           <CheckCircle className="w-6 h-6 text-green-600" />
         ) : slide.error ? (

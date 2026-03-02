@@ -11,13 +11,13 @@ interface LoadingStatesProps {
 const LoadingStates: React.FC<LoadingStatesProps> = ({ type, message }) => {
   if (type === "loading") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-evri-blue/5 via-white to-evri-blue/5 flex items-center justify-center">
         <Card className="p-8 text-center shadow-xl border-0 bg-white/80 backdrop-blur-sm">
           <CardContent className="space-y-6">
             <div className="relative">
               <div className="w-16 h-16 mx-auto mb-4 relative">
-                <Loader2 className="w-16 h-16 text-blue-500 animate-spin" />
-                <div className="absolute inset-0 w-16 h-16 border-4 border-blue-100 rounded-full animate-pulse"></div>
+                <Loader2 className="w-16 h-16 text-evri-blue animate-spin" />
+                <div className="absolute inset-0 w-16 h-16 border-4 border-evri-blue/10 rounded-full animate-pulse"></div>
               </div>
             </div>
 
@@ -33,15 +33,15 @@ const LoadingStates: React.FC<LoadingStatesProps> = ({ type, message }) => {
             {/* Loading animation dots */}
             <div className="flex justify-center space-x-1">
               <div
-                className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                className="w-2 h-2 bg-evri-blue rounded-full animate-bounce"
                 style={{ animationDelay: "0ms" }}
               ></div>
               <div
-                className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                className="w-2 h-2 bg-evri-blue rounded-full animate-bounce"
                 style={{ animationDelay: "150ms" }}
               ></div>
               <div
-                className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                className="w-2 h-2 bg-evri-blue rounded-full animate-bounce"
                 style={{ animationDelay: "300ms" }}
               ></div>
             </div>
@@ -114,7 +114,7 @@ const LoadingStates: React.FC<LoadingStatesProps> = ({ type, message }) => {
 // Component for layout grid skeleton while loading
 export const LayoutGridSkeleton: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-evri-blue/5 via-white to-evri-blue/5">
       {/* Header Skeleton */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-6 py-4">
