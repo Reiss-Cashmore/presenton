@@ -90,7 +90,7 @@ const EachSlide: React.FC<EachSlideProps> = ({
   return (
     <Card
       key={slide.slide_number}
-      className="border-2 font-instrument_sans w-full relative"
+      className="border-2 font-poppins w-full relative"
     >
       <CardHeader className="max-w-[1280px] mx-auto px-0 py-6">
         <CardTitle className="text-xl">

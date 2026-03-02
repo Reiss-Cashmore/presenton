@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 
 const loading = () => {
     return (
-        <div className="h-screen bg-gradient-to-b font-instrument_sans from-gray-50 to-white flex flex-col overflow-hidden">
+        <div className="h-screen bg-gradient-to-b font-poppins from-gray-50 to-white flex flex-col overflow-hidden">
             <main className="flex-1 container mx-auto px-4 max-w-3xl overflow-hidden flex flex-col">
                 {/* Branding Header Skeleton */}
                 <div className="text-center mb-2 mt-4 flex-shrink-0">

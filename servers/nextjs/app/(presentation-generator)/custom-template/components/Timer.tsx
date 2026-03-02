@@ -62,7 +62,7 @@ const Timer = ({ duration }: TimerProps) => {
   return (
     <div className="w-full space-y-2">
       <div className="flex justify-end items-center text-gray-800 text-sm">
-        <span className="font-inter text-end font-semibold text-xs">{Math.round(progress)}%</span>
+        <span className="font-poppins text-end font-semibold text-xs">{Math.round(progress)}%</span>
       </div>
       <div
         className="w-full rounded-full h-3 overflow-hidden shadow-inner"

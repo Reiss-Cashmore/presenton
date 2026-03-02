@@ -83,7 +83,7 @@ const TiptapText: React.FC<TiptapTextProps> = ({
           <button
             onClick={() => editor?.chain().focus().toggleBold().run()}
             className={`p-1 rounded hover:bg-gray-100 transition-colors ${
-              editor?.isActive("bold") ? "bg-blue-100 text-blue-600" : ""
+              editor?.isActive("bold") ? "bg-evri-blue/10 text-evri-blue" : ""
             }`}
             title="Bold"
           >
@@ -92,7 +92,7 @@ const TiptapText: React.FC<TiptapTextProps> = ({
           <button
             onClick={() => editor?.chain().focus().toggleItalic().run()}
             className={`p-1 rounded hover:bg-gray-100 transition-colors ${
-              editor?.isActive("italic") ? "bg-blue-100 text-blue-600" : ""
+              editor?.isActive("italic") ? "bg-evri-blue/10 text-evri-blue" : ""
             }`}
             title="Italic"
           >
@@ -101,7 +101,7 @@ const TiptapText: React.FC<TiptapTextProps> = ({
           <button
             onClick={() => editor?.chain().focus().toggleUnderline().run()}
             className={`p-1 rounded hover:bg-gray-100 transition-colors ${
-              editor?.isActive("underline") ? "bg-blue-100 text-blue-600" : ""
+              editor?.isActive("underline") ? "bg-evri-blue/10 text-evri-blue" : ""
             }`}
             title="Underline"
           >
@@ -110,7 +110,7 @@ const TiptapText: React.FC<TiptapTextProps> = ({
           <button
             onClick={() => editor?.chain().focus().toggleStrike().run()}
             className={`p-1 rounded hover:bg-gray-100 transition-colors ${
-              editor?.isActive("strike") ? "bg-blue-100 text-blue-600" : ""
+              editor?.isActive("strike") ? "bg-evri-blue/10 text-evri-blue" : ""
             }`}
             title="Strikethrough"
           >
@@ -119,7 +119,7 @@ const TiptapText: React.FC<TiptapTextProps> = ({
           <button
             onClick={() => editor?.chain().focus().toggleCode().run()}
             className={`p-1 rounded hover:bg-gray-100 transition-colors ${
-              editor?.isActive("code") ? "bg-blue-100 text-blue-600" : ""
+              editor?.isActive("code") ? "bg-evri-blue/10 text-evri-blue" : ""
             }`}
             title="Code"
           >

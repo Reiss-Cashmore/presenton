@@ -159,7 +159,7 @@ const FontManager: React.FC<FontManagerProps> = ({
                         variant="outline"
                         disabled={uploadingFonts.has(fontName)}
                         onClick={() => fileInputRefs.current[fontName]?.click()}
-                        className="text-xs bg-blue-600 text-white hover:text-white hover:bg-blue-700 border-blue-600"
+                        className="text-xs bg-evri-blue text-white hover:text-white hover:bg-evri-blue/80 border-evri-blue"
                       >
                         {uploadingFonts.has(fontName) ? (
                           <>
@@ -221,7 +221,7 @@ const FontManager: React.FC<FontManagerProps> = ({
           size="sm"
           variant="outline"
           onClick={processSlideToHtml}
-          className="text-xs px-8 py-2 font-semibold bg-blue-600 text-white hover:text-white hover:bg-blue-700 border-blue-600"
+          className="text-xs px-8 py-2 font-semibold bg-evri-blue text-white hover:text-white hover:bg-evri-blue/80 border-evri-blue"
           >
             Extract Template
         </Button>

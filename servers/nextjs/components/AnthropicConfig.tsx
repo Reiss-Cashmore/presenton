@@ -95,7 +95,7 @@ export default function AnthropicConfig({
             type="text"
             value={anthropicApiKey}
             onChange={(e) => onApiKeyChange(e.target.value)}
-            className="w-full px-4 py-2.5 outline-none border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+            className="w-full px-4 py-2.5 outline-none border border-gray-300 rounded-lg focus:ring-2 focus:ring-evri-blue/20 focus:border-evri-blue transition-colors"
             placeholder="Enter your Anthropic API key"
           />
         </div>
@@ -130,7 +130,7 @@ export default function AnthropicConfig({
             disabled={modelsLoading || !anthropicApiKey}
             className={`w-full py-2.5 px-4 rounded-lg transition-all duration-200 border-2 ${modelsLoading || !anthropicApiKey
               ? "bg-gray-100 border-gray-300 cursor-not-allowed text-gray-500"
-              : "bg-white border-blue-600 text-blue-600 hover:bg-blue-50 focus:ring-2 focus:ring-blue-500/20"
+              : "bg-white border-evri-blue text-evri-blue hover:bg-evri-blue/5 focus:ring-2 focus:ring-evri-blue/20"
               }`}
           >
             {modelsLoading ? (
@@ -170,7 +170,7 @@ export default function AnthropicConfig({
                   variant="outline"
                   role="combobox"
                   aria-expanded={openModelSelect}
-                  className="w-full h-12 px-4 py-4 outline-none border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors hover:border-gray-400 justify-between"
+                  className="w-full h-12 px-4 py-4 outline-none border border-gray-300 rounded-lg focus:ring-2 focus:ring-evri-blue/20 focus:border-evri-blue transition-colors hover:border-gray-400 justify-between"
                 >
                   <div className="flex gap-3 items-center">
                     <span className="text-sm font-medium text-gray-900">

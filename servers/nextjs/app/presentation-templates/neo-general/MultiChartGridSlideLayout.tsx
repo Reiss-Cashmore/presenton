@@ -580,7 +580,7 @@ const MultiChartGridSlideLayout: React.FC<MultiChartGridSlideLayoutProps> = ({ d
                 rel="stylesheet"
             />
             <div
-                className="w-full rounded-sm max-w-[1280px] shadow-lg max-h-[720px] aspect-video bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 relative z-20 mx-auto overflow-hidden"
+                className="w-full rounded-sm max-w-[1280px] shadow-lg max-h-[720px] aspect-video bg-gradient-to-br from-slate-50 via-white to-evri-blue/5 relative z-20 mx-auto overflow-hidden"
                 style={{
                     fontFamily: "var(--heading-font-family, 'Poppins')",
                     background: "var(--background-color, linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #eef2ff 100%))"

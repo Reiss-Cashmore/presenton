@@ -33,7 +33,7 @@ export const CustomTemplateCard = memo(({ template, onSelectTemplate, selectedTe
 
     return (
         <Card
-            className={`${isSelected ? 'border-2 border-blue-500' : ''} cursor-pointer hover:shadow-lg transition-all duration-200 group overflow-hidden relative`}
+            className={`${isSelected ? 'border-2 border-evri-blue' : ''} cursor-pointer hover:shadow-lg transition-all duration-200 group overflow-hidden relative`}
             style={{ contain: 'layout style paint' }}
             onClick={() => {
                 onSelectTemplate(template.id);
@@ -56,7 +56,7 @@ export const CustomTemplateCard = memo(({ template, onSelectTemplate, selectedTe
                         [...Array(Math.min(4, template.layoutCount))].map((_, index) => (
                             <div
                                 key={`${template.id}-loading-${index}`}
-                                className="relative bg-gradient-to-br from-purple-50 to-blue-50 border border-gray-200 overflow-hidden aspect-video rounded flex items-center justify-center"
+                                className="relative bg-gradient-to-br from-evri-blue/5 to-evri-blue/5 border border-gray-200 overflow-hidden aspect-video rounded flex items-center justify-center"
                             >
                                 <Loader2 className="w-4 h-4 text-purple-300 animate-spin" />
                             </div>
@@ -87,7 +87,7 @@ export const CustomTemplateCard = memo(({ template, onSelectTemplate, selectedTe
 
             </div>
             {isSelected && (
-                <div className="absolute top-0 right-0 bg-blue-500 text-white px-2 py-1 rounded-bl-lg">
+                <div className="absolute top-0 right-0 bg-evri-blue text-white px-2 py-1 rounded-bl-lg">
                     Selected
                 </div>
             )}

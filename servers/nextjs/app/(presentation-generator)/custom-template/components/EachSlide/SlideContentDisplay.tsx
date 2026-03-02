@@ -36,7 +36,7 @@ export const SlideContentDisplay: React.FC<SlideContentDisplayProps> = ({
   if (slide.processing) {
     return (
       <div className="space-y-4">
-        <p className="text-base text-blue-600 font-medium">🔄 Converting to HTML...</p>
+        <p className="text-base text-evri-blue font-medium">🔄 Converting to HTML...</p>
         <div className="space-y-3">
           <Timer duration={160} />
         </div>

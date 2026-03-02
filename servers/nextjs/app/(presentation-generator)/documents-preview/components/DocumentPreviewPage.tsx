@@ -241,7 +241,7 @@ const DocumentsPreviewPage: React.FC = () => {
                   key={key}
                   onClick={() => updateSelectedDocument(key)}
                   className={`${
-                    selectedDocument === key ? "border border-blue-500" : ""
+                    selectedDocument === key ? "border border-evri-blue" : ""
                   } flex p-2 rounded-sm gap-2 items-center cursor-pointer`}
                 >
                   <img
@@ -270,7 +270,7 @@ const DocumentsPreviewPage: React.FC = () => {
         duration={showLoading.duration}
       />
       <Header />
-      <div className="flex mt-6 gap-4 font-instrument_sans">
+      <div className="flex mt-6 gap-4 font-poppins">
         {!isOpen && (
           <div className="fixed left-4 top-1/2 -translate-y-1/2 z-50">
             <ToolTip content="Open Panel">

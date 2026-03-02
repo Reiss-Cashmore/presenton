@@ -50,7 +50,7 @@ const GenerateButton: React.FC<GenerateButtonProps> = ({
         }
         onSubmit();
       }}
-      className="bg-[#5146E5] w-full rounded-lg text-base sm:text-lg py-4 sm:py-6 font-instrument_sans font-semibold hover:bg-[#5146E5]/80 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+      className="bg-[#5146E5] w-full rounded-lg text-base sm:text-lg py-4 sm:py-6 font-poppins font-semibold hover:bg-[#5146E5]/80 text-white disabled:opacity-50 disabled:cursor-not-allowed"
     >
       <svg
         className="mr-2"

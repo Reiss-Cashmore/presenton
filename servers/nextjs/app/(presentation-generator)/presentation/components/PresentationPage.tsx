@@ -125,7 +125,7 @@ const PresentationPage: React.FC<PresentationPageProps> = ({
   return (
     <div className="h-screen flex overflow-hidden flex-col">
       <div className="fixed right-6 top-[5.2rem] z-50">
-        {isSaving && <Loader2 className="w-6 h-6 animate-spin text-blue-500" />}
+        {isSaving && <Loader2 className="w-6 h-6 animate-spin text-evri-blue" />}
       </div>
 
       <Header presentation_id={presentation_id} currentSlide={selectedSlide} />

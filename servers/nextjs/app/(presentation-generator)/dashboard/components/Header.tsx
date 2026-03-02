@@ -18,8 +18,8 @@ const Header = () => {
             {(pathname !== "/upload" && pathname !== "/dashboard") && <BackBtn />}
             <Link href="/dashboard" onClick={() => trackEvent(MixpanelEvent.Navigation, { from: pathname, to: "/dashboard" })}>
               <img
-                src="/logo-white.png"
-                alt="Presentation logo"
+                src="/evri-logo-white.svg"
+                alt="Evri"
                 className="h-16"
               />
             </Link>
@@ -33,7 +33,7 @@ const Header = () => {
               role="menuitem"
             >
               <FilePlus2 className="w-5 h-5" />
-              <span className="text-sm font-medium font-inter">Create Template</span>
+              <span className="text-sm font-medium font-poppins">Create Template</span>
             </Link>
             <Link
               href="/template-preview"
@@ -43,7 +43,7 @@ const Header = () => {
               role="menuitem"
             >
               <Layout className="w-5 h-5" />
-              <span className="text-sm font-medium font-inter">Templates</span>
+              <span className="text-sm font-medium font-poppins">Templates</span>
             </Link>
             <HeaderNav />
           </div>

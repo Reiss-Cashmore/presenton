@@ -229,13 +229,13 @@ export default function CodexConfig({
   if (authStatus === "polling") {
     return (
       <div className="space-y-6">
-        <div className="flex flex-col items-center gap-4 py-8 px-4 bg-blue-50 rounded-xl border border-blue-100">
-          <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+        <div className="flex flex-col items-center gap-4 py-8 px-4 bg-evri-blue/5 rounded-xl border border-evri-blue/10">
+          <Loader2 className="w-8 h-8 text-evri-blue animate-spin" />
           <div className="text-center">
-            <p className="text-sm font-medium text-blue-900">
+            <p className="text-sm font-medium text-evri-navy">
               Waiting for authentication…
             </p>
-            <p className="text-xs text-blue-600 mt-1">
+            <p className="text-xs text-evri-blue mt-1">
               Complete the sign-in in the browser tab that just opened.
             </p>
           </div>
@@ -261,7 +261,7 @@ export default function CodexConfig({
           <input
             type="text"
             placeholder="Paste redirect URL or authorization code…"
-            className="w-full px-4 py-2.5 outline-none border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors text-sm"
+            className="w-full px-4 py-2.5 outline-none border border-gray-300 rounded-lg focus:ring-2 focus:ring-evri-blue/20 focus:border-evri-blue transition-colors text-sm"
             value={manualCode}
             onChange={(e) => setManualCode(e.target.value)}
           />
@@ -344,7 +344,7 @@ export default function CodexConfig({
                 variant="outline"
                 role="combobox"
                 aria-expanded={openModelSelect}
-                className="w-full h-12 px-4 py-4 outline-none border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors hover:border-gray-400 justify-between"
+                className="w-full h-12 px-4 py-4 outline-none border border-gray-300 rounded-lg focus:ring-2 focus:ring-evri-blue/20 focus:border-evri-blue transition-colors hover:border-gray-400 justify-between"
               >
                 <span className="text-sm font-medium text-gray-900">
                   {codexModel

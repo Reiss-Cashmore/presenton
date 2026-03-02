@@ -103,7 +103,7 @@ export default function CustomConfig({
             type="text"
             required
             placeholder="Enter your URL"
-            className="w-full px-4 py-2.5 outline-none border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+            className="w-full px-4 py-2.5 outline-none border border-gray-300 rounded-lg focus:ring-2 focus:ring-evri-blue/20 focus:border-evri-blue transition-colors"
             value={customLlmUrl}
             onChange={(e) => onUrlChange(e.target.value)}
           />
@@ -120,7 +120,7 @@ export default function CustomConfig({
             type="text"
             required
             placeholder="Enter your API Key"
-            className="w-full px-4 py-2.5 outline-none border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+            className="w-full px-4 py-2.5 outline-none border border-gray-300 rounded-lg focus:ring-2 focus:ring-evri-blue/20 focus:border-evri-blue transition-colors"
             value={customLlmApiKey}
             onChange={(e) => onApiKeyChange(e.target.value)}
           />
@@ -135,7 +135,7 @@ export default function CustomConfig({
             disabled={customModelsLoading || !customLlmUrl}
             className={`w-full py-2.5 px-4 rounded-lg transition-all duration-200 border-2 ${customModelsLoading || !customLlmUrl
               ? "bg-gray-100 border-gray-300 cursor-not-allowed text-gray-500"
-              : "bg-white border-blue-600 text-blue-600 hover:bg-blue-50 focus:ring-2 focus:ring-blue-500/20"
+              : "bg-white border-evri-blue text-evri-blue hover:bg-evri-blue/5 focus:ring-2 focus:ring-evri-blue/20"
               }`}
           >
             {customModelsLoading ? (
@@ -182,7 +182,7 @@ export default function CustomConfig({
                   variant="outline"
                   role="combobox"
                   aria-expanded={openModelSelect}
-                  className="w-full h-12 px-4 py-4 outline-none border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors hover:border-gray-400 justify-between"
+                  className="w-full h-12 px-4 py-4 outline-none border border-gray-300 rounded-lg focus:ring-2 focus:ring-evri-blue/20 focus:border-evri-blue transition-colors hover:border-gray-400 justify-between"
                 >
                   <span className="text-sm font-medium text-gray-900">
                     {customModel || "Select a model"}

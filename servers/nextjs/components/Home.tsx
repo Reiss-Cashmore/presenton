@@ -144,12 +144,12 @@ export default function Home() {
   }
 
   return (
-    <div className="h-screen bg-gradient-to-b font-instrument_sans from-gray-50 to-white flex flex-col overflow-hidden">
+    <div className="h-screen bg-gradient-to-b font-poppins from-gray-50 to-white flex flex-col overflow-hidden">
       <main className="flex-1 container mx-auto px-4 max-w-3xl overflow-hidden flex flex-col">
         {/* Branding Header */}
         <div className="text-center mb-2 mt-4 flex-shrink-0">
           <div className="flex items-center justify-center gap-3 mb-2">
-            <img src="/Logo.png" alt="Presenton Logo" className="h-12" />
+            <img src="/evri-logo.svg" alt="Evri" className="h-12" />
           </div>
           <p className="text-gray-600 text-sm">
             Open-source AI presentation generator
@@ -178,7 +178,7 @@ export default function Home() {
                 {downloadingModel.done ? (
                   <CheckCircle className="w-12 h-12 text-green-600 mx-auto" />
                 ) : (
-                  <Download className="w-12 h-12 text-blue-600 mx-auto animate-pulse" />
+                  <Download className="w-12 h-12 text-evri-blue mx-auto animate-pulse" />
                 )}
               </div>
 
@@ -197,7 +197,7 @@ export default function Home() {
                 <div className="mb-4">
                   <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                     <div
-                      className="bg-blue-600 h-3 rounded-full transition-all duration-300 ease-out"
+                      className="bg-evri-blue h-3 rounded-full transition-all duration-300 ease-out"
                       style={{ width: `${downloadProgress}%` }}
                     />
                   </div>
@@ -248,7 +248,7 @@ export default function Home() {
             disabled={buttonState.isDisabled}
             className={`w-full font-semibold py-3 px-4 rounded-lg transition-all duration-500 ${buttonState.isDisabled
               ? "bg-gray-400 cursor-not-allowed"
-              : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:ring-4 focus:ring-blue-200"
+              : "bg-gradient-to-r from-evri-blue to-evri-navy hover:from-evri-blue/80 hover:to-evri-navy/80 focus:ring-4 focus:ring-evri-blue/20"
               } text-white`}
           >
             {buttonState.isLoading ? (

@@ -55,7 +55,7 @@ const CustomTemplateCard = ({ template }: { template: CustomTemplates }) => {
             [...Array(Math.min(4, template.layoutCount))].map((_, index) => (
               <div
                 key={`${template.id}-loading-${index}`}
-                className="relative bg-gradient-to-br from-purple-50 to-blue-50 border border-gray-200 overflow-hidden aspect-video rounded flex items-center justify-center"
+                className="relative bg-gradient-to-br from-evri-blue/5 to-evri-blue/5 border border-gray-200 overflow-hidden aspect-video rounded flex items-center justify-center"
               >
                 <Loader2 className="w-4 h-4 text-purple-300 animate-spin" />
               </div>
@@ -145,10 +145,10 @@ const LayoutPreview = () => {
                         {template.name}
                       </h3>
                       <div className="flex items-center gap-2">
-                        <span className="px-2.5 py-0.5 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                        <span className="px-2.5 py-0.5 bg-evri-blue/10 text-evri-navy rounded-full text-sm font-medium">
                           {template.layouts.length}
                         </span>
-                        <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                        <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-evri-blue transition-colors" />
                       </div>
                     </div>
 
@@ -189,14 +189,14 @@ const LayoutPreview = () => {
             <h2 className="text-xl font-semibold text-gray-800 ">
               My Custom Templates
             </h2>
-            <a href="/custom-template" className="text-sm flex font-bold font-inter items-center justify-center gap-2  bg-[#5146E5] text-white px-4 py-2 rounded-md">
+            <a href="/custom-template" className="text-sm flex font-bold font-poppins items-center justify-center gap-2  bg-[#5146E5] text-white px-4 py-2 rounded-md">
               <Plus className="w-4 h-4" /> Create new template
             </a>
           </div>
 
           {customLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+              <Loader2 className="w-8 h-8 animate-spin text-evri-blue" />
               <span className="ml-3 text-gray-600">Loading custom templates...</span>
             </div>
           ) : customTemplates.length === 0 ? (

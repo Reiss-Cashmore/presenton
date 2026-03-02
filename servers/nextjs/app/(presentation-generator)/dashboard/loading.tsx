@@ -10,7 +10,7 @@ const loading = () => {
       <Wrapper className=''>
         <div className='container mx-auto px-4 py-8'>
 
-       <h2 className="text-2xl font-roboto font-medium my-6">
+       <h2 className="text-2xl font-poppins font-medium my-6">
               Slide Presentation
             </h2>
       <div className=" mx-auto pb-10 grid xl:grid-cols-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4  ">

@@ -128,7 +128,7 @@ export function OutlineItem({
                 <div
                     {...attributes}
                     {...listeners}
-                    className="min-w-8 sm:min-w-10 w-10 sm:w-14 h-10 sm:h-14 bg-blue-400/10 rounded-[8px] flex items-center justify-center relative cursor-grab"
+                    className="min-w-8 sm:min-w-10 w-10 sm:w-14 h-10 sm:h-14 bg-evri-blue/10 rounded-[8px] flex items-center justify-center relative cursor-grab"
                 >
                     <div className="grid grid-cols-2 gap-[2px]">
                         <div className="w-[3px] h-[3px] bg-black/80 rounded-full" />

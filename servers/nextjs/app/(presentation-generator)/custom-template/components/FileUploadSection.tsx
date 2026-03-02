@@ -44,7 +44,7 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
         {slides.length > 0 && (
           <div className="flex items-center justify-end gap-2">
             {slides.some((s) => s.processing) && (
-              <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+              <Loader2 className="w-6 h-6 animate-spin text-evri-blue" />
             )}
             {completedSlides}/{slides.length} slides completed
           </div>
@@ -71,9 +71,9 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
             </p>
           </div>
         ) : (
-          <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-evri-blue/5 border border-evri-blue/20 rounded-lg">
             <div className="flex items-center gap-3">
-              <FileText className="w-8 h-8 text-blue-600" />
+              <FileText className="w-8 h-8 text-evri-blue" />
               <div>
                 <p className="font-medium text-gray-900">
                   {selectedFile.name}
@@ -101,7 +101,7 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
           <Button
             onClick={processFile}
             disabled={isProcessingPptx || slides.some((s) => s.processing)}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+            className="flex-1 bg-evri-blue hover:bg-evri-blue/80 text-white"
           >
             {isProcessingPptx
               ? "Extracting Slides..."

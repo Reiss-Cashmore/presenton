@@ -69,12 +69,12 @@ const SlideCountSelect: React.FC<{
   return (
     <Select value={value || ""} onValueChange={onValueChange} name="slides">
       <SelectTrigger
-        className="w-[180px] font-instrument_sans font-medium bg-blue-100 border-blue-200 focus-visible:ring-blue-300"
+        className="w-[180px] font-poppins font-medium bg-evri-blue/10 border-evri-blue/20 focus-visible:ring-evri-blue/30"
         data-testid="slides-select"
       >
         <SelectValue placeholder="Select Slides" />
       </SelectTrigger>
-      <SelectContent className="font-instrument_sans">
+      <SelectContent className="font-poppins">
         {/* Sticky custom input at the top */}
         <div
           className="sticky top-0 z-10 bg-white  p-2 border-b"
@@ -119,7 +119,7 @@ const SlideCountSelect: React.FC<{
           <SelectItem
             key={option}
             value={option}
-            className="font-instrument_sans text-sm font-medium"
+            className="font-poppins text-sm font-medium"
             role="option"
           >
             {option} slides
@@ -147,7 +147,7 @@ const LanguageSelect: React.FC<{
         name="language"
         data-testid="language-select"
         aria-expanded={open}
-        className="w-[200px] justify-between font-instrument_sans font-semibold overflow-hidden bg-blue-100 hover:bg-blue-100 border-blue-200 focus-visible:ring-blue-300 border-none"
+        className="w-[200px] justify-between font-poppins font-semibold overflow-hidden bg-evri-blue/10 hover:bg-evri-blue/10 border-evri-blue/20 focus-visible:ring-evri-blue/30 border-none"
       >
         <p className="text-sm font-medium truncate">
           {value || "Select language"}
@@ -159,7 +159,7 @@ const LanguageSelect: React.FC<{
       <Command>
         <CommandInput
           placeholder="Search language..."
-          className="font-instrument_sans"
+          className="font-poppins"
         />
         <CommandList>
           <CommandEmpty>No language found.</CommandEmpty>
@@ -173,7 +173,7 @@ const LanguageSelect: React.FC<{
                   onValueChange(currentValue);
                   onOpenChange(false);
                 }}
-                className="font-instrument_sans"
+                className="font-poppins"
               >
                 <Check
                   className={cn(
@@ -250,14 +250,14 @@ export function ConfigurationSelects({
         title="Advanced settings"
         type="button"
         onClick={() => handleOpenAdvancedChange(true)}
-        className="ml-auto flex items-center gap-2 text-sm underline underline-offset-4  bg-blue-100 hover:bg-blue-100 border-blue-200 focus-visible:ring-blue-300 border-none p-2 rounded-md font-instrument_sans font-medium"
+        className="ml-auto flex items-center gap-2 text-sm underline underline-offset-4  bg-evri-blue/10 hover:bg-evri-blue/10 border-evri-blue/20 focus-visible:ring-evri-blue/30 border-none p-2 rounded-md font-poppins font-medium"
       >
         <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
       </button>
         </ToolTip>
 
       <Dialog open={openAdvanced} onOpenChange={handleOpenAdvancedChange}>
-        <DialogContent className="max-w-2xl font-instrument_sans">
+        <DialogContent className="max-w-2xl font-poppins">
           <DialogHeader>
             <DialogTitle>Advanced settings</DialogTitle>
           </DialogHeader>
@@ -271,10 +271,10 @@ export function ConfigurationSelects({
                 value={advancedDraft.tone}
                 onValueChange={(value) => setAdvancedDraft((prev) => ({ ...prev, tone: value as ToneType }))}
               >
-                <SelectTrigger className="w-full font-instrument_sans capitalize font-medium bg-blue-100 border-blue-200 focus-visible:ring-blue-300">
+                <SelectTrigger className="w-full font-poppins capitalize font-medium bg-evri-blue/10 border-evri-blue/20 focus-visible:ring-evri-blue/30">
                   <SelectValue placeholder="Select tone" />
                 </SelectTrigger>
-                <SelectContent className="font-instrument_sans">
+                <SelectContent className="font-poppins">
                   {Object.values(ToneType).map((tone) => (
                     <SelectItem key={tone} value={tone} className="text-sm font-medium capitalize">
                       {tone}
@@ -292,10 +292,10 @@ export function ConfigurationSelects({
                 value={advancedDraft.verbosity}
                 onValueChange={(value) => setAdvancedDraft((prev) => ({ ...prev, verbosity: value as VerbosityType }))}
               >
-                <SelectTrigger className="w-full font-instrument_sans capitalize font-medium bg-blue-100 border-blue-200 focus-visible:ring-blue-300">
+                <SelectTrigger className="w-full font-poppins capitalize font-medium bg-evri-blue/10 border-evri-blue/20 focus-visible:ring-evri-blue/30">
                   <SelectValue placeholder="Select verbosity" />
                 </SelectTrigger>
-                <SelectContent className="font-instrument_sans">
+                <SelectContent className="font-poppins">
                   {Object.values(VerbosityType).map((verbosity) => (
                     <SelectItem key={verbosity} value={verbosity} className="text-sm font-medium capitalize">
                       {verbosity}
@@ -308,7 +308,7 @@ export function ConfigurationSelects({
            
 
             {/* Toggles */}
-            <div className="w-full flex flex-col gap-2 p-3 rounded-md bg-blue-100 border-blue-200">
+            <div className="w-full flex flex-col gap-2 p-3 rounded-md bg-evri-blue/10 border-evri-blue/20">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-semibold text-gray-700">Include table of contents</label>
                 <Switch
@@ -318,7 +318,7 @@ export function ConfigurationSelects({
               </div>
               <p className="text-xs text-gray-600">Add an index slide summarizing sections (requires 3+ slides).</p>
             </div>
-            <div className="w-full flex flex-col gap-2 p-3 rounded-md bg-blue-100 border-blue-200">
+            <div className="w-full flex flex-col gap-2 p-3 rounded-md bg-evri-blue/10 border-evri-blue/20">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-semibold text-gray-700">Title slide</label>
                 <Switch
@@ -328,7 +328,7 @@ export function ConfigurationSelects({
               </div>
               <p className="text-xs text-gray-600">Include a title slide as the first slide.</p>
             </div>
-            <div className="w-full flex flex-col gap-2 p-3 rounded-md bg-blue-100 border-blue-200">
+            <div className="w-full flex flex-col gap-2 p-3 rounded-md bg-evri-blue/10 border-evri-blue/20">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-semibold text-gray-700">Web search</label>
                 <Switch
@@ -348,7 +348,7 @@ export function ConfigurationSelects({
                 rows={4}
                 onChange={(e) => setAdvancedDraft((prev) => ({ ...prev, instructions: e.target.value }))}
                 placeholder="Example: Focus on enterprise buyers, emphasize ROI and security compliance. Keep slides data-driven, avoid jargon, and include a short call-to-action on the final slide."
-                className="py-2 px-3 border-2 font-medium text-sm min-h-[100px] max-h-[200px] border-blue-200 focus-visible:ring-offset-0 focus-visible:ring-blue-300"
+                className="py-2 px-3 border-2 font-medium text-sm min-h-[100px] max-h-[200px] border-evri-blue/20 focus-visible:ring-offset-0 focus-visible:ring-evri-blue/30"
               />
             </div>
           </div>

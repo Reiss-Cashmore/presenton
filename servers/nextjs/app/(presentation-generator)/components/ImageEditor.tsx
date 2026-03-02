@@ -284,7 +284,7 @@ const ImageEditor = ({
 
           <div className="mt-6">
             <Tabs defaultValue="generate" className="w-full" onValueChange={handleTabChange}>
-              <TabsList className="grid bg-blue-100 border border-blue-300 w-full grid-cols-3 mx-auto">
+              <TabsList className="grid bg-evri-blue/10 border border-evri-blue/30 w-full grid-cols-3 mx-auto">
                 <TabsTrigger className="font-medium" value="generate">
                   AI Generate
                 </TabsTrigger>
@@ -337,7 +337,7 @@ const ImageEditor = ({
                     ) : (
                       <div
                         onClick={() => handleImageChange(previewImages)}
-                        className="aspect-[4/3] w-full overflow-hidden rounded-lg border cursor-pointer hover:border-blue-500 transition-colors"
+                        className="aspect-[4/3] w-full overflow-hidden rounded-lg border cursor-pointer hover:border-evri-blue transition-colors"
                       >
                         {previewImages && (
                           <img
@@ -359,7 +359,7 @@ const ImageEditor = ({
                           <div
                             onClick={() => handleImageChange(image.path)}
                             key={image.id}
-                            className="aspect-[4/3] w-full overflow-hidden rounded-lg border cursor-pointer hover:border-blue-500 transition-colors"
+                            className="aspect-[4/3] w-full overflow-hidden rounded-lg border cursor-pointer hover:border-evri-blue transition-colors"
                           >
                             <img
                               src={image.path}
@@ -382,7 +382,7 @@ const ImageEditor = ({
                       "border-2 border-dashed rounded-lg p-8 text-center transition-colors",
                       isUploading
                         ? "border-gray-400 bg-gray-50"
-                        : "border-gray-300 hover:border-blue-400"
+                        : "border-gray-300 hover:border-evri-blue/40"
                     )}
                   >
                     <input
@@ -539,7 +539,7 @@ const ImageEditor = ({
                             Click anywhere to set focus point
                           </p>
                           <button
-                            className="mt-2 px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                            className="mt-2 px-3 py-1 bg-evri-blue text-white text-xs rounded hover:bg-evri-blue/80"
                             onClick={(e) => {
                               e.stopPropagation();
                               toggleFocusPointMode();
@@ -576,7 +576,7 @@ const ImageEditor = ({
                           variant="outline"
                           className={cn(
                             objectFit === "cover" &&
-                              "bg-blue-50 border-blue-500"
+                              "bg-evri-blue/5 border-evri-blue"
                           )}
                           onClick={() => handleFitChange("cover")}
                         >
@@ -586,7 +586,7 @@ const ImageEditor = ({
                           variant="outline"
                           className={cn(
                             objectFit === "contain" &&
-                              "bg-blue-50 border-blue-500"
+                              "bg-evri-blue/5 border-evri-blue"
                           )}
                           onClick={() => handleFitChange("contain")}
                         >
@@ -595,7 +595,7 @@ const ImageEditor = ({
                         <Button
                           variant="outline"
                           className={cn(
-                            objectFit === "fill" && "bg-blue-50 border-blue-500"
+                            objectFit === "fill" && "bg-evri-blue/5 border-evri-blue"
                           )}
                           onClick={() => handleFitChange("fill")}
                         >

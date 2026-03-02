@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 
 export default function LoadingProfile() {
     return (
-        <div className="h-screen bg-gradient-to-b font-instrument_sans from-gray-50 to-white flex flex-col overflow-hidden">
+        <div className="h-screen bg-gradient-to-b font-poppins from-gray-50 to-white flex flex-col overflow-hidden">
             {/* Header Skeleton */}
             <div className="flex-shrink-0 bg-white border-b border-gray-200 p-4">
                 <div className="container mx-auto max-w-3xl">

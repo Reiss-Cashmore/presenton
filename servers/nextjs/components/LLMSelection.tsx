@@ -271,7 +271,7 @@ export default function LLMProviderSelection({
                 className={cn(
                   "border rounded-lg p-3 text-left transition-colors",
                   llmConfig.DALL_E_3_QUALITY === option.value
-                    ? "border-blue-500 bg-blue-50"
+                    ? "border-evri-blue bg-evri-blue/5"
                     : "border-gray-200 hover:border-gray-300"
                 )}
                 onClick={() =>
@@ -305,7 +305,7 @@ export default function LLMProviderSelection({
                 className={cn(
                   "border rounded-lg p-3 text-left transition-colors",
                   llmConfig.GPT_IMAGE_1_5_QUALITY === option.value
-                    ? "border-blue-500 bg-blue-50"
+                    ? "border-evri-blue bg-evri-blue/5"
                     : "border-gray-200 hover:border-gray-300"
                 )}
                 onClick={() =>
@@ -457,7 +457,7 @@ export default function LLMProviderSelection({
                       variant="outline"
                       role="combobox"
                       aria-expanded={openImageProviderSelect}
-                      className="w-full h-12 px-4 py-4 outline-none border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors hover:border-gray-400 justify-between"
+                      className="w-full h-12 px-4 py-4 outline-none border border-gray-300 rounded-lg focus:ring-2 focus:ring-evri-blue/20 focus:border-evri-blue transition-colors hover:border-gray-400 justify-between"
                     >
                       <div className="flex gap-3 items-center">
                         <span className="text-sm font-medium text-gray-900">
@@ -570,7 +570,7 @@ export default function LLMProviderSelection({
                           <input
                             type="text"
                             placeholder="http://192.168.1.7:8188"
-                            className="w-full px-4 py-2.5 outline-none border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+                            className="w-full px-4 py-2.5 outline-none border border-gray-300 rounded-lg focus:ring-2 focus:ring-evri-blue/20 focus:border-evri-blue transition-colors"
                             value={llmConfig.COMFYUI_URL || ""}
                             onChange={(e) => {
                               input_field_changed(
@@ -593,7 +593,7 @@ export default function LLMProviderSelection({
                         <div className="relative">
                           <textarea
                             placeholder='Paste your ComfyUI workflow JSON here (export via "Export (API)" in ComfyUI)'
-                            className="w-full px-4 py-2.5 outline-none border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors font-mono text-xs"
+                            className="w-full px-4 py-2.5 outline-none border border-gray-300 rounded-lg focus:ring-2 focus:ring-evri-blue/20 focus:border-evri-blue transition-colors font-mono text-xs"
                             rows={6}
                             value={llmConfig.COMFYUI_WORKFLOW || ""}
                             onChange={(e) => {
@@ -623,7 +623,7 @@ export default function LLMProviderSelection({
                       <input
                         type="text"
                         placeholder={`Enter your ${provider.apiKeyFieldLabel}`}
-                        className="w-full px-4 py-2.5 outline-none border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+                        className="w-full px-4 py-2.5 outline-none border border-gray-300 rounded-lg focus:ring-2 focus:ring-evri-blue/20 focus:border-evri-blue transition-colors"
                         value={getApiKeyValue(provider.apiKeyField)}
                         onChange={(e) =>
                           handleApiKeyInputChange(
@@ -644,14 +644,14 @@ export default function LLMProviderSelection({
         )}
 
         {/* Model Information */}
-        <div className="mb-8 p-4 bg-blue-50 rounded-lg border border-blue-100">
+        <div className="mb-8 p-4 bg-evri-blue/5 rounded-lg border border-evri-blue/10">
           <div className="flex items-start gap-3">
-            <Info className="w-5 h-5 text-blue-500 mt-0.5" />
+            <Info className="w-5 h-5 text-evri-blue mt-0.5" />
             <div>
-              <h3 className="text-sm font-medium text-blue-900 mb-1">
+              <h3 className="text-sm font-medium text-evri-navy mb-1">
                 Selected Models
               </h3>
-              <p className="text-sm text-blue-700">
+              <p className="text-sm text-evri-blue">
                 Using{" "}
                 {llmConfig.LLM === "ollama"
                   ? llmConfig.OLLAMA_MODEL ?? "xxxxx"

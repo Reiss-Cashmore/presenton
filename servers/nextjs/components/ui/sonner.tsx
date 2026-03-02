@@ -48,8 +48,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
         /* Info Toast */
         [data-sonner-toast][data-type="info"] {
           background: rgb(248 250 252) !important; /* slate-50 */
-          border: 1px solid rgb(59 130 246) !important; /* blue-500 border */
-          border-left: 4px solid rgb(59 130 246) !important; /* blue-500 left accent */
+          border: 1px solid #007BC4 !important; /* evri-blue border */
+          border-left: 4px solid #007BC4 !important; /* evri-blue left accent */
         }
         [data-sonner-toast][data-type="info"] [data-title] {
           color: rgb(15 23 42) !important; /* slate-900 */
@@ -114,8 +114,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
 
         .dark [data-sonner-toast][data-type="info"] {
           background: rgb(15 23 42) !important; /* slate-900 */
-          border: 1px solid rgb(59 130 246) !important;
-          border-left: 4px solid rgb(59 130 246) !important;
+          border: 1px solid #007BC4 !important;
+          border-left: 4px solid #007BC4 !important;
         }
         .dark [data-sonner-toast][data-type="info"] [data-title] {
           color: rgb(248 250 252) !important; /* slate-50 */

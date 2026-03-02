@@ -63,7 +63,7 @@ export const PresentationCard = ({
       <div className="space-y-4">
         {/* Date */}
         <div className="flex items-center justify-between">
-          <p className="text-[#667085] text-sm font-roboto pt-2">
+          <p className="text-[#667085] text-sm font-poppins pt-2">
             {new Date(created_at).toLocaleDateString()}
           </p>
           <Popover>
@@ -110,7 +110,7 @@ export const PresentationCard = ({
               strokeWidth="1.5"
             />
           </svg>
-          <p className="text-[#667085] text-sm ml-1 line-clamp-2 font-roboto">
+          <p className="text-[#667085] text-sm ml-1 line-clamp-2 font-poppins">
             {title}
           </p>
         </div>

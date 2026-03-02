@@ -113,19 +113,19 @@ export function ConfigurationInitializer({ children }: { children: React.ReactNo
             {/* Logo/Branding */}
             <div className="mb-6">
               <img
-                src="/Logo.png"
-                alt="PresentOn"
+                src="/evri-logo.svg"
+                alt="Evri"
                 className="h-12 mx-auto mb-4 opacity-90"
               />
-              <div className="w-16 h-1 bg-gradient-to-r from-blue-500 to-purple-600 mx-auto rounded-full"></div>
+              <div className="w-16 h-1 bg-gradient-to-r from-evri-blue to-evri-navy mx-auto rounded-full"></div>
             </div>
 
             {/* Loading Text */}
             <div className="space-y-2">
-              <h3 className="text-lg font-semibold text-gray-800 font-inter">
+              <h3 className="text-lg font-semibold text-gray-800 font-poppins">
                 Initializing Application
               </h3>
-              <p className="text-sm text-gray-600 font-inter">
+              <p className="text-sm text-gray-600 font-poppins">
                 Loading configuration and checking model availability...
               </p>
             </div>
@@ -133,9 +133,9 @@ export function ConfigurationInitializer({ children }: { children: React.ReactNo
             {/* Progress Indicator */}
             <div className="mt-6">
               <div className="flex space-x-1 justify-center">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                <div className="w-2 h-2 bg-evri-blue rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-evri-navy rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-2 h-2 bg-evri-blue rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
               </div>
             </div>
           </div>
