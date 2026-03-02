@@ -2227,7 +2227,7 @@ class LLMClient:
         return self._stream_openai_structured(
             model=model,
             messages=messages,
-            response_format=response_format,
+            response_format=flatten_json_schema(response_format),
             strict=strict,
             max_tokens=max_tokens,
             tools=tools,
