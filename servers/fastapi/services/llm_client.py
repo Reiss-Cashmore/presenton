@@ -2200,6 +2200,7 @@ class LLMClient:
         response_format: dict,
         strict: bool = False,
         max_tokens: Optional[int] = None,
+        tools: Optional[List] = None,
         depth: int = 0,
     ):
         return self._stream_openai_structured(
@@ -2208,6 +2209,7 @@ class LLMClient:
             response_format=response_format,
             strict=strict,
             max_tokens=max_tokens,
+            tools=tools,
             depth=depth,
         )
 
@@ -2218,6 +2220,7 @@ class LLMClient:
         response_format: dict,
         strict: bool = False,
         max_tokens: Optional[int] = None,
+        tools: Optional[List] = None,
         depth: int = 0,
     ):
         extra_body = {"enable_thinking": False} if self.disable_thinking() else None
@@ -2227,6 +2230,7 @@ class LLMClient:
             response_format=response_format,
             strict=strict,
             max_tokens=max_tokens,
+            tools=tools,
             extra_body=extra_body,
             depth=depth,
         )
@@ -2284,6 +2288,7 @@ class LLMClient:
                     response_format=response_format,
                     strict=strict,
                     max_tokens=max_tokens,
+                    tools=parsed_tools,
                 )
             case LLMProvider.CUSTOM:
                 return self._stream_custom_structured(
@@ -2292,6 +2297,7 @@ class LLMClient:
                     response_format=response_format,
                     strict=strict,
                     max_tokens=max_tokens,
+                    tools=parsed_tools,
                 )
 
     # ? Web search
