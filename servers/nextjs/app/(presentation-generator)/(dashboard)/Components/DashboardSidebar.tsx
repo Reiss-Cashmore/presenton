@@ -2,9 +2,8 @@
 
 import React from "react";
 import { LayoutDashboard, Star, Brain, Settings } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 
 

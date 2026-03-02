@@ -252,6 +252,7 @@ export default function LLMProviderSelection({
               openaiModel={llmConfig.OPENAI_MODEL || ""}
               webGrounding={llmConfig.WEB_GROUNDING || false}
               onInputChange={input_field_changed}
+              llmConfig={llmConfig}
             />
           </TabsContent>
 
