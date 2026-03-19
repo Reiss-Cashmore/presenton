@@ -8,8 +8,8 @@ import {
   Maximize2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Slide } from "../types/slide";
-import { V1ContentRender } from "./V1ContentRender";
+import { Slide } from "../../types/slide";
+import { V1ContentRender } from "../../components/V1ContentRender";
 
 
 interface PresentationModeProps {
