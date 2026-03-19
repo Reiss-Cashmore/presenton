@@ -241,7 +241,7 @@ const DocumentsPreviewPage: React.FC = () => {
                   key={key}
                   onClick={() => updateSelectedDocument(key)}
                   className={`${
-                    selectedDocument === key ? "border border-evri-blue" : ""
+                    selectedDocument === key ? "border border-blue-600" : ""
                   } flex p-2 rounded-sm gap-2 items-center cursor-pointer`}
                 >
                   <img

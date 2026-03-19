@@ -69,7 +69,7 @@ const SlideCountSelect: React.FC<{
   return (
     <Select value={value || ""} onValueChange={onValueChange} name="slides">
       <SelectTrigger
-        className="w-[180px] font-poppins font-medium bg-evri-blue/10 border-evri-blue/20 focus-visible:ring-evri-blue/30"
+        className="w-[180px] font-poppins font-medium bg-blue-600/10 border-blue-600/20 focus-visible:ring-blue-600/30"
         data-testid="slides-select"
       >
         <SelectValue placeholder="Select Slides" />
@@ -147,7 +147,7 @@ const LanguageSelect: React.FC<{
         name="language"
         data-testid="language-select"
         aria-expanded={open}
-        className="w-[200px] justify-between font-poppins font-semibold overflow-hidden bg-evri-blue/10 hover:bg-evri-blue/10 border-evri-blue/20 focus-visible:ring-evri-blue/30 border-none"
+        className="w-[200px] justify-between font-poppins font-semibold overflow-hidden bg-blue-600/10 hover:bg-blue-600/10 border-blue-600/20 focus-visible:ring-blue-600/30 border-none"
       >
         <p className="text-sm font-medium truncate">
           {value || "Select language"}
@@ -250,7 +250,7 @@ export function ConfigurationSelects({
         title="Advanced settings"
         type="button"
         onClick={() => handleOpenAdvancedChange(true)}
-        className="ml-auto flex items-center gap-2 text-sm underline underline-offset-4  bg-evri-blue/10 hover:bg-evri-blue/10 border-evri-blue/20 focus-visible:ring-evri-blue/30 border-none p-2 rounded-md font-poppins font-medium"
+        className="ml-auto flex items-center gap-2 text-sm underline underline-offset-4  bg-blue-600/10 hover:bg-blue-600/10 border-blue-600/20 focus-visible:ring-blue-600/30 border-none p-2 rounded-md font-poppins font-medium"
       >
         <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
       </button>
@@ -271,7 +271,7 @@ export function ConfigurationSelects({
                 value={advancedDraft.tone}
                 onValueChange={(value) => setAdvancedDraft((prev) => ({ ...prev, tone: value as ToneType }))}
               >
-                <SelectTrigger className="w-full font-poppins capitalize font-medium bg-evri-blue/10 border-evri-blue/20 focus-visible:ring-evri-blue/30">
+                <SelectTrigger className="w-full font-poppins capitalize font-medium bg-blue-600/10 border-blue-600/20 focus-visible:ring-blue-600/30">
                   <SelectValue placeholder="Select tone" />
                 </SelectTrigger>
                 <SelectContent className="font-poppins">
@@ -292,7 +292,7 @@ export function ConfigurationSelects({
                 value={advancedDraft.verbosity}
                 onValueChange={(value) => setAdvancedDraft((prev) => ({ ...prev, verbosity: value as VerbosityType }))}
               >
-                <SelectTrigger className="w-full font-poppins capitalize font-medium bg-evri-blue/10 border-evri-blue/20 focus-visible:ring-evri-blue/30">
+                <SelectTrigger className="w-full font-poppins capitalize font-medium bg-blue-600/10 border-blue-600/20 focus-visible:ring-blue-600/30">
                   <SelectValue placeholder="Select verbosity" />
                 </SelectTrigger>
                 <SelectContent className="font-poppins">
@@ -308,7 +308,7 @@ export function ConfigurationSelects({
            
 
             {/* Toggles */}
-            <div className="w-full flex flex-col gap-2 p-3 rounded-md bg-evri-blue/10 border-evri-blue/20">
+            <div className="w-full flex flex-col gap-2 p-3 rounded-md bg-blue-600/10 border-blue-600/20">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-semibold text-gray-700">Include table of contents</label>
                 <Switch
@@ -318,7 +318,7 @@ export function ConfigurationSelects({
               </div>
               <p className="text-xs text-gray-600">Add an index slide summarizing sections (requires 3+ slides).</p>
             </div>
-            <div className="w-full flex flex-col gap-2 p-3 rounded-md bg-evri-blue/10 border-evri-blue/20">
+            <div className="w-full flex flex-col gap-2 p-3 rounded-md bg-blue-600/10 border-blue-600/20">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-semibold text-gray-700">Title slide</label>
                 <Switch
@@ -328,7 +328,7 @@ export function ConfigurationSelects({
               </div>
               <p className="text-xs text-gray-600">Include a title slide as the first slide.</p>
             </div>
-            <div className="w-full flex flex-col gap-2 p-3 rounded-md bg-evri-blue/10 border-evri-blue/20">
+            <div className="w-full flex flex-col gap-2 p-3 rounded-md bg-blue-600/10 border-blue-600/20">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-semibold text-gray-700">Web search</label>
                 <Switch
@@ -348,7 +348,7 @@ export function ConfigurationSelects({
                 rows={4}
                 onChange={(e) => setAdvancedDraft((prev) => ({ ...prev, instructions: e.target.value }))}
                 placeholder="Example: Focus on enterprise buyers, emphasize ROI and security compliance. Keep slides data-driven, avoid jargon, and include a short call-to-action on the final slide."
-                className="py-2 px-3 border-2 font-medium text-sm min-h-[100px] max-h-[200px] border-evri-blue/20 focus-visible:ring-offset-0 focus-visible:ring-evri-blue/30"
+                className="py-2 px-3 border-2 font-medium text-sm min-h-[100px] max-h-[200px] border-blue-600/20 focus-visible:ring-offset-0 focus-visible:ring-blue-600/30"
               />
             </div>
           </div>

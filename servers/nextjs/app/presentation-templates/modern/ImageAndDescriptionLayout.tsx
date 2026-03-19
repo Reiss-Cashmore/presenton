@@ -117,7 +117,7 @@ const ImageWithDescriptionSlideLayout: React.FC<ImageWithDescriptionSlideLayoutP
                     {[...Array(32)].map((_, i) => (
                       <div
                         key={i}
-                        className="bg-evri-blue/10 opacity-60 rounded-sm border border-gray-300"
+                        className="bg-blue-600/10 opacity-60 rounded-sm border border-gray-300"
                       ></div>
                     ))}
                   </div>

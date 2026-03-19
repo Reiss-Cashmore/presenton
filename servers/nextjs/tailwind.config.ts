@@ -43,11 +43,6 @@ const config: Config = {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
-        evri: {
-          blue: "#007BC4",
-          turquoise: "#53EFEF",
-          navy: "#00014D",
-        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

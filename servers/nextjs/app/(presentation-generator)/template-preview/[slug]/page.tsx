@@ -74,7 +74,7 @@ const GroupLayoutPreview = () => {
       <div className="min-h-screen bg-gray-50">
         <Header />
         <div className="flex items-center justify-center py-24">
-          <Loader2 className="w-8 h-8 animate-spin text-evri-blue" />
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
           <span className="ml-3 text-gray-600">Compiling templates...</span>
         </div>
       </div>
@@ -231,7 +231,7 @@ const GroupLayoutPreview = () => {
                         <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded text-sm font-mono">
                           {template.layoutId}
                         </span>
-                        <span className="px-3 py-1 bg-evri-blue/10 text-evri-navy rounded-full text-sm font-medium">
+                        <span className="px-3 py-1 bg-blue-600/10 text-gray-900 rounded-full text-sm font-medium">
                           #{index + 1}
                         </span>
                       </div>

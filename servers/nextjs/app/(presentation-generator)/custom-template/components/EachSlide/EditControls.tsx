@@ -37,7 +37,7 @@ export const EditControls: React.FC<EditControlsProps> = ({
   if (!isEditMode) return null;
 
   return (
-    <div className="border-2 max-w-[1280px] mx-auto border-evri-blue/20 rounded-lg p-4 bg-evri-blue/5 space-y-4">
+    <div className="border-2 max-w-[1280px] mx-auto border-blue-600/20 rounded-lg p-4 bg-blue-600/5 space-y-4">
       {/* Drawing Tools */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-4 flex-wrap">
@@ -89,7 +89,7 @@ export const EditControls: React.FC<EditControlsProps> = ({
                 key={width}
                 className={`w-7 h-7 rounded border flex items-center justify-center ${
                   strokeWidth === width
-                    ? "bg-evri-blue/10 border-evri-blue"
+                    ? "bg-blue-600/10 border-blue-600"
                     : "border-gray-300"
                 }`}
                 onClick={() => onStrokeWidthChange(width)}
@@ -141,7 +141,7 @@ export const EditControls: React.FC<EditControlsProps> = ({
             placeholder="Enter your prompt here... (e.g., 'Change the title color to blue', 'Add a border to the image', etc.)"
             value={prompt}
             onChange={(e) => onPromptChange(e.target.value)}
-            className="flex-1 font-poppins duration-300 h-[70px] border-evri-blue/20 border-2 rounded-lg outline-none focus:border-evri-blue focus:ring-0 max-h-[70px] resize-none"
+            className="flex-1 font-poppins duration-300 h-[70px] border-blue-600/20 border-2 rounded-lg outline-none focus:border-blue-600 focus:ring-0 max-h-[70px] resize-none"
             disabled={isUpdating}
           />
           <div>

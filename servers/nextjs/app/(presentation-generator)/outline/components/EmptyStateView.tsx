@@ -14,8 +14,8 @@ const EmptyStateView: React.FC = () => {
                     {/* Icon */}
                     <div className="flex justify-center">
                         <div className="relative">
-                            <div className="w-24 h-24 bg-gradient-to-br from-evri-blue/5 to-evri-blue/10 rounded-full flex items-center justify-center">
-                                <FileText className="w-12 h-12 text-evri-navy" />
+                            <div className="w-24 h-24 bg-gradient-to-br from-blue-600/5 to-blue-600/10 rounded-full flex items-center justify-center">
+                                <FileText className="w-12 h-12 text-gray-900" />
                             </div>
                             <div className="absolute -top-2 -right-2 w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
                                 <Plus className="w-4 h-4 text-red-600" />
@@ -38,7 +38,7 @@ const EmptyStateView: React.FC = () => {
                     <div className="pt-4">
                         <Button
                             onClick={() => router.push("/upload")}
-                            className="group bg-gradient-to-r from-evri-blue to-evri-navy hover:from-evri-blue/80 hover:to-evri-navy/80 text-white px-8 py-4 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                            className="group bg-gradient-to-r from-blue-600 to-gray-900 hover:from-blue-600/80 hover:to-gray-900/80 text-white px-8 py-4 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                         >
                             <Plus className="w-5 h-5 mr-2" />
                             Create New Presentation

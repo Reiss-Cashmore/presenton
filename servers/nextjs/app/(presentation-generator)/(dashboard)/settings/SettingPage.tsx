@@ -176,7 +176,7 @@ const SettingsPage = () => {
             className={`w-full font-semibold py-3 px-4 rounded-lg transition-all duration-500 ${
               buttonState.isDisabled
                 ? "bg-gray-400 cursor-not-allowed"
-                : "bg-gradient-to-r from-evri-blue to-evri-navy hover:from-evri-blue/80 hover:to-evri-navy/80 focus:ring-4 focus:ring-evri-blue/20"
+                : "bg-gradient-to-r from-blue-600 to-gray-900 hover:from-blue-600/80 hover:to-gray-900/80 focus:ring-4 focus:ring-blue-600/20"
             } text-white`}
           >
             {buttonState.isLoading ? (
@@ -202,7 +202,7 @@ const SettingsPage = () => {
                 {downloadingModel.done ? (
                   <CheckCircle className="w-12 h-12 text-green-600 mx-auto" />
                 ) : (
-                  <Download className="w-12 h-12 text-evri-blue mx-auto animate-pulse" />
+                  <Download className="w-12 h-12 text-blue-600 mx-auto animate-pulse" />
                 )}
               </div>
 
@@ -223,7 +223,7 @@ const SettingsPage = () => {
                 <div className="mb-4">
                   <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                     <div
-                      className="bg-evri-blue h-3 rounded-full transition-all duration-300 ease-out"
+                      className="bg-blue-600 h-3 rounded-full transition-all duration-300 ease-out"
                       style={{ width: `${downloadProgress}%` }}
                     />
                   </div>

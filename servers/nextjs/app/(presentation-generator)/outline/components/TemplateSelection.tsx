@@ -50,7 +50,7 @@ const TemplateSelection: React.FC<TemplateSelectionProps> = ({
             return (
               <Card
                 key={template.id}
-                className={`${typeof selectedTemplate !== 'string' && selectedTemplate?.id === template.id ? 'border-2 border-evri-blue' : ''} cursor-pointer hover:shadow-lg transition-all duration-200 group overflow-hidden relative`}
+                className={`${typeof selectedTemplate !== 'string' && selectedTemplate?.id === template.id ? 'border-2 border-blue-600' : ''} cursor-pointer hover:shadow-lg transition-all duration-200 group overflow-hidden relative`}
                 onClick={() => onSelectTemplate(template)}
               >
                 <div className="p-5">
@@ -87,7 +87,7 @@ const TemplateSelection: React.FC<TemplateSelectionProps> = ({
                   </div>
                 </div>
                 {typeof selectedTemplate !== 'string' && selectedTemplate?.id === template.id && (
-                  <div className="absolute top-0 right-0 bg-evri-blue text-white px-2 py-1 rounded-bl-lg">
+                  <div className="absolute top-0 right-0 bg-blue-600 text-white px-2 py-1 rounded-bl-lg">
                     Selected
                   </div>
                 )}
@@ -104,7 +104,7 @@ const TemplateSelection: React.FC<TemplateSelectionProps> = ({
         </div>
         {customLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-evri-blue" />
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
             <span className="ml-3 text-gray-600">Loading custom templates...</span>
           </div>
         ) : customTemplates.length === 0 ? (
